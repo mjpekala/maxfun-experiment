@@ -1,8 +1,10 @@
 function plot_mf_support(X, row, col, w)
 %
 %   X          : an image that was maxpooled; (m x n) matrix
-%   row, col : the upper left corner of the support region
+%   row, col   : the upper left corner of the support region
 %   w          : the width/height of the support region
+
+% mjp, may 2016
 
 imagesc(X);  colormap(gray);
 
