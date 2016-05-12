@@ -1,27 +1,25 @@
-function data = load_image_data(imageDir, sz)
-%  LOAD_IMAGE_DATA    Loads images from file.
+function data = load_image_dataset(imageDir, sz)
+%  LOAD_IMAGE_DATASET    Loads images from file.
 %
 %   Loads an image data set where objects from each class have been
-%   placed in separate subdirectories.  For example, Caltech 101.
+%   placed in separate subdirectories.  
 %
-%   data = load_image_data(baseDirectory, sz);
+%   Example:
+%      data = load_image_dataset('~/Data/caltech_101/101_ObjectCategories', [200 300]);
 %
 %   where 
-%      baseDirectory : A string containing the top level directory
-%                      containing all the image subdirectories. 
+%      imageDir  : A string containing the top level directory
+%                  containing all the image subdirectories. 
 %
-%      sz            : A pair [height, width] indicating how the
-%                      raw images should be resized.  If sz is
-%                      empty, the data will not be loaded (can be
-%                      useful if it will to too memory intensive to
-%                      load the entire data set at once).
+%      sz        : A pair [height, width] indicating how the
+%                  raw images should be resized.  If sz is
+%                  empty, the data will not be loaded (can be
+%                  useful if it will to too memory intensive to
+%                  load the entire data set at once).
 %
 
 % mjp, april 2016
 
-if nargin < 3, namesOnly = 0; end
-
-assert(numel(sz) == 2);
 
 
 % Get a list of all classes in the dataset.
@@ -57,7 +55,7 @@ end
 
 
 % get a list of all individual image filenames.
-yAll = 1:length(classDirs);
+yAll = 1:length(classNames);
 data.y = [];
 data.files = {};
 for yi = yAll
@@ -74,9 +72,10 @@ for yi = yAll
     data.y = [data.y ; yi*ones(length(files),1)];
 end
 
-fprintf('[%s]: Data set has %d classes\n', mfilename, length(data.y));
+fprintf('[%s]: Data set has %d objects and %d classes\n', mfilename, length(data.y), length(yAll));
 
 if ~isempty(sz)
-    data.X = cellfun(@read_images, data.files, 'UniformOutput', 0);
-    data.X = cat(4, data.X);
+    fprintf('[%s]: reading images...please wait...\n', mfilename);
+    data.X = cellfun(@(fn) read_images(fn, sz), data.files, 'UniformOutput', 0);
+    data.X = cat(3, data.X{:});
 end
