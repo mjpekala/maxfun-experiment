@@ -1,8 +1,11 @@
 function pMax = select_scalar_pooling_param(X, y, f_pool, pAll, foldId)
-% SELECT_SCALAR_POOLING_PARAM  Choose a pooling parameter via cross-validation.
+% SELECT_SCALAR_POOLING_PARAM  Choose a pooling (hyper-)parameter 
+%                              via cross-validation.
 %
+%  Exmaple:
 %    pMax = select_scalar_pooling_param(X, y, f_pool, pAll [,foldIds]);
 %
+%   where,
 %    X      : An tensor with dimensions (h, w, d, n) corresponding to
 %             the image height, width, feature_dimension and
 %             num_examples.
@@ -61,6 +64,7 @@ for ii = 1:nFolds
         P(jj,ii) = metrics.nCorrect;
     end
 end
+
 
 %% choose the best performing parameter (across all folds)
 
