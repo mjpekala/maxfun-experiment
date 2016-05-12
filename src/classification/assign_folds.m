@@ -7,8 +7,8 @@ function foldId = assign_folds(y, nFolds)
 %      y := an (m x 1) vector of class labels.
 %      n := the number of folds (scalar) 
 %
-%  Objects will be assigned to folds; an attempt is made to ensure
-%  each fold reflects the same relative class distribution as y.
+%  An attempt is made to ensure each fold reflects the same relative
+%  class distribution as y.
 
 % mjp, april 2016
 
