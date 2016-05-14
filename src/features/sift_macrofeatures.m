@@ -3,7 +3,7 @@ function X = sift_macrofeatures(I, varargin)
 % macrofeature capability described in [1].
 %
 %  PARAMETERS
-%    I       : A grayscale image of type SINGLE.  
+%    I       : A grayscale image (m x n matrix) of type SINGLE.  
 %    step    : SIFT sampling density
 %    subsamp : spatial subsampling (partially determines maximum pool region size)
 %    macrosl : macrofeature side length (see [1])
