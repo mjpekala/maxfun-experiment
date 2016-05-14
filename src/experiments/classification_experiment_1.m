@@ -164,3 +164,40 @@ end
 toc
 
 Acc
+
+
+
+% Just for grins, take a look at a low-dimensional representation of
+% the featurized and pooled data.
+
+D = pdist(data.Xavg', 'euclidean');
+[Y,e] = cmdscale(D);
+figure;
+plot(Y(data.y==0,1), Y(data.y==0,2), 'bo', ...
+     Y(data.y==1,1), Y(data.y==1,2), 'rx');
+legend('class A', 'class B');
+xlabel('x1');  ylabel('x2');
+title('MDS for avg pooled features');
+saveas(gcf, 'mds_avg.eps', 'epsc');
+
+
+D = pdist(data.Xmax', 'euclidean');
+[Y,e] = cmdscale(D);
+figure;
+plot(Y(data.y==0,1), Y(data.y==0,2), 'bo', ...
+     Y(data.y==1,1), Y(data.y==1,2), 'rx');
+legend('class A', 'class B');
+xlabel('x1');  ylabel('x2');
+title('MDS for max pooled features');
+saveas(gcf, 'mds_max.eps', 'epsc');
+
+
+D = pdist(data.Xfun', 'euclidean');
+[Y,e] = cmdscale(D);
+figure;
+plot(Y(data.y==0,1), Y(data.y==0,2), 'bo', ...
+     Y(data.y==1,1), Y(data.y==1,2), 'rx');
+legend('class A', 'class B');
+xlabel('x1');  ylabel('x2');
+title('MDS for MAXFUN pooled features');
+saveas(gcf, 'mds_fun.eps', 'epsc');
