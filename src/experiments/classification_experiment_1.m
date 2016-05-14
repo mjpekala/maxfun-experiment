@@ -70,7 +70,7 @@ data.foldId = assign_folds(data.y, nFolds);
 
 fprintf('[%s]: pooling raw data - please wait a few moments...\n', mfilename);
 
-P = zeros(2*nExamples, 6);
+P = zeros(nExamples, 6);
 P(:,1) = spatial_pool(data.Xraw(:,:,data.y==0), 'avg');
 P(:,2) = spatial_pool(data.Xraw(:,:,data.y==1), 'avg');
 P(:,3) = spatial_pool(data.Xraw(:,:,data.y==0), 'max');
