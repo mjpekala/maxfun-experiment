@@ -1,11 +1,13 @@
 function data = load_image_dataset(imageDir, sz)
 %  LOAD_IMAGE_DATASET    Loads images from file.
 %
-%   Loads an image data set where objects from each class have been
-%   placed in separate subdirectories.  
+%   Loads an image data set; an assumption is that objects from each
+%   class have been placed in separate subdirectories (e.g. as per the
+%   default layout for Caltech 101).
 %
 %   Example:
 %      data = load_image_dataset('~/Data/caltech_101/101_ObjectCategories', [200 300]);
+%      figure; imagesc(data.X(:,:,1));
 %
 %   where 
 %      imageDir  : A string containing the top level directory
