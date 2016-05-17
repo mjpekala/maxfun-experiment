@@ -1,12 +1,14 @@
 function [yHat, metrics] = eval_svm(Xtrain, ytrain, Xtest, ytest)
-% EVAL_SVM   Trains and evaluates a SVM on a dataset.
+% EVAL_SVM   Trains and evaluates a linear SVM on a dataset.
 %
 %   [yhat, metrics] = eval_svm(Xtrain, ytrain, Xtest, ytest)
 %
 %    where,
-%     Xtrain : an (nxd) matrix of n objects each with d features (i.e. objects-as-rows)
+%     Xtrain : an (nxd) matrix of n objects each with d features 
+%              (i.e. objects-as-rows)
 %     ytrain : an (nx1) vector of train class labels
-%     Xtest  : an (mxd) matrix of m objects each with d features (i.e. objects-as-rows)
+%     Xtest  : an (mxd) matrix of m objects each with d features 
+%              (i.e. objects-as-rows)
 %     ytest  : an (mx1) vector of test class labels
 %
 %
