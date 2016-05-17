@@ -1,5 +1,5 @@
 function selected = select_n(y, n)
-% SELECT_N  Selects n objects from each class.
+% SELECT_N  Selects (up to) n objects from each class.
 %
 %     selected = select_n(y, n)
 %
@@ -29,6 +29,7 @@ end
 selected = logical(zeros(size(y)));
 for yi = yAll(:)'
     idx = find(y == yi);
-    idx = randsample(idx, n);
+    ni = min(n, length(idx));
+    idx = randsample(idx, ni);
     selected(idx) = true;
 end
