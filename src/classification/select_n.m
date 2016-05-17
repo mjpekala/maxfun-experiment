@@ -1,21 +1,18 @@
-function isTrain = select_training(y, nTrain)
-% SELECT_TRAINING  Identifies training data.
+function selected = select_n(y, n)
+% SELECT_N  Selects n objects from each class.
 %
-%     isTrain = select_training(y, nTrain)
+%     selected = select_n(y, n)
 %
 %   where,
-%      y       := an (n x 1) vector of class labels for the entire 
-%                 data set
-%      nTrain  := the number of examples from each class to use for
-%                 training
+%      y        := an (n x 1) vector of class labels
+%      n        := the number of examples from each class to choose
 %
-%      isTrain := an (n x 1) logical vector where 1/true at index i
+%      selected := an (n x 1) logical vector where 1/true at index i
 %                 means the ith object is included in the training
 %                 data set.
 %
-%  Chooses nTrain objects from each class uniformly at random.
-%  Returns a logical vector indicating which objects are in the
-%  training set.
+%  This function is really nothing more than a convenience wrapper
+%  around randsample().
 
 % mjp, april 2016
 
@@ -26,13 +23,12 @@ yAll = sort(unique(y));
 if nargin < 2
     n = hist(y, length(yAll));
     assert(all(n > 0));
-    nTrain = floor(min(n)/2);
+    n = floor(min(n)/2);
 end
 
-isTrain = logical(zeros(size(y)));
-
+selected = logical(zeros(size(y)));
 for yi = yAll(:)'
     idx = find(y == yi);
-    idx = randsample(idx, nTrain);
-    isTrain(idx) = true;
+    idx = randsample(idx, n);
+    selected(idx) = true;
 end
