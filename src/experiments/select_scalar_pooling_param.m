@@ -15,10 +15,11 @@ function pMax = select_scalar_pooling_param(X, y, f_pool, pAll, foldId)
 %    pAll   : A set of scalar parameters to search over for the pooling function.
 %
 %  Uses mean accuracy obtained by applying a linear SVM to multiple
-%  train/test splits to decide which parameter is best.  An implicit
-%  assumption is that the X provided by the caller contains only
-%  training data (so the train/test splits induced here are more like
-%  train/validation splits).
+%  train/test splits to decide which parameter is best.  
+%
+%  *** An implicit assumption is that the X provided by the caller
+%  contains only training data (so the train/test splits induced here
+%  are more like train/validation splits). ***
 
 % mjp, april 2016
 
