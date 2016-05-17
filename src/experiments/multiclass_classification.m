@@ -16,10 +16,9 @@
 
 %% Experiment Parameters 
 
-rng(9999);
-
+p_.seed = 9999;
 p_.experiment = 'caltech-101';
-p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
+p_.nSplits = 2;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
 p_.nAtoms = 128;  % set to a non-positive value if you don't want
                   % sparse coded features.
 
@@ -40,10 +39,10 @@ switch lower(p_.experiment)
     error(sprintf('unrecognized experiment name: %s', p_.experiment));
 end
 
+p_.rootDir = fullfile('Outputs', [p_.experiment '_' num2str(p_.seed)]);
 
+rng(p_.seed);
 timestamp = datestr(now);
-p_.rootDir = fullfile('Outputs', [p_.experiment '_' timestamp]);
-
 overallTimer = tic;
 
 p_  % show parameters to user
@@ -52,7 +51,7 @@ p_  % show parameters to user
 %% some helper functions
 
 shuffle = @(x) x(randperm(numel(x)));
-make_dir = @(dirName) ~exist(dirName) & mkdir(dirName);
+make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 
 run_sift = @(I) sift_macrofeatures(I, 'subsamp', 1, 'step', 4, 'macrosl', 2);
 featurize = @(fn) run_sift(read_images(fn, sz));
@@ -77,6 +76,15 @@ diary(fullfile(p_.rootDir, ['log_one_vs_all_' timestamp '.txt']));
 
 data = load_image_dataset(p_.imageDir, p_.sz);
 for splitId = 1:p_.nSplits
+    % create output file (if it does not already exist)
+    experimentDir{splitId} = fullfile(p_.rootDir, sprintf('split_%0.2d', splitId));
+    make_dir(experimentDir{splitId});
+    fn = fullfile(experimentDir{splitId}, 'data.mat');
+    if exist(fn, 'file')
+        fprintf('[%s]: data file already exists for train/test split %d; re-using...\n', mfilename, splitId);
+        continue;
+    end
+    
     fprintf('[%s]: Creating train/test split %d (of %d)\n', mfilename, splitId, p_.nSplits);
     [isTrain, isTest] = select_n(data.y, p_.nTrain, p_.nTest);
 
@@ -91,54 +99,29 @@ for splitId = 1:p_.nSplits
     test.idx = find(isTest);
 
     % save data to file
-    experimentDir{splitId} = fullfile(p_.rootDir, sprintf('split_%0.2d', splitId));
-    make_dir(experimentDir{splitId});
-    save(fullfile(experimentDir{splitId}, 'data.mat'), ...
-         'train', 'test', 'p_', '-v7.3');
-    
+    save(fn, 'train', 'test', 'p_', '-v7.3');
     clear train test isTrain isTest;
 end
 
-
-
-return
-
+clear data;
 
 
 %% Run Experiments
 
-Sall = {};
-for splitId = 1:nSplits
-    fprintf('====================================================\n');
-    fprintf('[%s]: Starting split %d (of %d)\n', mfilename, splitId, nSplits);
-    fprintf('====================================================\n\n');
+for ii = 1:length(experimentDir)
+    fprintf('[%s]: Processing train/test split %d (of %d)\n', mfilename, ii, p_.nSplits);
+    eDir = experimentDir{ii};
     
+    load(fullfile(eDir, 'data.mat'), 'train', 'test');
+    return % TEMP
 
-    %% Identify train/test split.  
-    % The procedure of [1] is not fully % specified, so we also take
-    % inspiration from [3].
-    %
-    isTrain = logical(zeros(size(y)));
-    isTest = logical(zeros(size(y)));
-
-    isTrain = select_training(nTrain);
-    isTest = ~isTrain;
-    %for ii = 1:length(yAll), yi=yAll(ii);
-    %    idx = shuffle(find(y == yi));
-    %    isTrain(idx(1:nTrain)) = 1;
-    %    isTest(idx((nTrain+1):min(nTrain+nTest,length(idx)))) = 1;
-    %end
-    
-    assert(sum(isTrain > 0) && sum(isTest > 0));
-
-    
     %% generate low-level features for training data
     Xraw = cellfun_status(featurize, imageFiles(isTrain), 'SIFT train');
     Xraw = cat(4, Xraw{:});
     Xraw = double(Xraw);
     train.y = y(isTrain);
 
-    
+ 
     %% learn dictionary
     lambdaAll = [.0001 .001 .01];
     lambdaAll = [.0001];   % XXX: hardcoded choice
