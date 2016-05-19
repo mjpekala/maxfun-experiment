@@ -5,6 +5,9 @@ function data = load_image_dataset(imageDir, sz)
 %   class have been placed in separate subdirectories (e.g. as per the
 %   default layout for Caltech 101).
 %
+%   Note there there is a bit of dataset-specific logic below
+%   (for Caltech-101 in particular).
+%
 %   Example:
 %      data = load_image_dataset('~/Data/caltech_101/101_ObjectCategories', [200 300]);
 %      figure; imagesc(data.X(:,:,1));
