@@ -18,7 +18,7 @@ if nargin < 3, verbose=true; end
 
 z = size(T,3);
 
-timer = tic;  lastChatter = -1;
+timer = tic;  lastChatter = -1e3;
 
 
 for ii=1:z
@@ -27,7 +27,7 @@ for ii=1:z
         Y = zeros(numel(y), z);
     end
     Y(:,ii) = y(:);
-    
+
     if verbose && ((toc(timer) - lastChatter) > 20)
         fprintf('[%s]: processed %d items (of %d) in %0.2f minutes\n', ...
                 mfilename, ii, z, toc(timer)/60);
@@ -36,3 +36,9 @@ for ii=1:z
 end
 
 Y = reshape(Y, [size(y) z]);
+
+if verbose 
+    fprintf('[%s]: processed %d items (of %d) in %0.2f minutes\n', ...
+            mfilename, ii, z, toc(timer)/60);
+end
+
