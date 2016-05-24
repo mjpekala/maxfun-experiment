@@ -18,7 +18,7 @@ addpath(fullfile(here, 'pooling'));
 addpath(fullfile(here, 'features'));
 addpath(fullfile(here, 'classification'));
 addpath(fullfile(here, 'data'));
-addpath(fullfile(here, 'experiments'));
+addpath(fullfile(here, 'examples'));
 
 
 
