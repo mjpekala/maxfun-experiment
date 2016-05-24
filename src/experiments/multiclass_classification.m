@@ -180,9 +180,8 @@ end
 wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
 wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
-% TODO: replace when we have gab
 %featFiles = {siftFn, gaborFn, waveletFn};
-featFiles = {siftFn};
+featFiles = {siftFn};  % TODO / TEMP
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     fprintf('[%s]: starting train/test split %d (of %d)\n', ...
@@ -233,7 +232,6 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
             % The transpose below is because the SVM codes all want objects-as-rows.
             [yHat, metrics] = eval_svm(Xtrain', feats.train.y, Xtest', feats.test.y);
             Yhat(:,kk+1) = yHat(:);
-            metrics.CM
         end
 
         % save truth and estimates to file for later analysis if desired
@@ -243,5 +241,11 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     end
 end
 
- 
+
+%% Post-processing / analysis
+
+for ii = 1:length(experimentDir), eDir = experimentDir{ii};
+end
+
+
 diary off;
