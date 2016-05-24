@@ -25,7 +25,7 @@
 p_.seed = 9999;
 p_.experiment = 'caltech-101';
 %p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
-p_.nSplits = 2;
+p_.nSplits = 2;  % TEMP
 p_.nAtoms = 128;  % set to a non-positive value if you don't want
                   % sparse coded features.
 
@@ -46,7 +46,7 @@ switch lower(p_.experiment)
     error(sprintf('unrecognized experiment name: %s', p_.experiment));
 end
 
-p_.rootDir = fullfile('Outputs', [p_.experiment '_' num2str(p_.seed)]);
+p_.rootDir = fullfile('Outputs', [p_.experiment '_seed' num2str(p_.seed)]);
 
 rng(p_.seed);
 timestamp = datestr(now);
@@ -54,7 +54,8 @@ overallTimer = tic;
 
 p_  % show parameters to user
 
-
+% output file names used for intermediate results.
+rawFn = 'raw_data.mat';
 siftFn = 'feat_SIFT.mat';
 gaborFn = 'feat_Gabor.mat';
 waveletFn = 'feat_wavelet.mat';
@@ -65,6 +66,7 @@ waveletFn = 'feat_wavelet.mat';
 shuffle = @(x) x(randperm(numel(x)));
 make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 
+% note: could change SIFT parameters if desired
 run_sift = @(I) sift_macrofeatures(single(I), ...
                                    'subsamp', 1, 'step', 4, 'macrosl', 2);
 
@@ -85,11 +87,13 @@ for splitId = 1:p_.nSplits
     experimentDir{splitId} = fullfile(p_.rootDir, sprintf('split_%0.2d', splitId));
     make_dir(experimentDir{splitId});
     
-    fn = fullfile(experimentDir{splitId}, 'data.mat');
+    fn = fullfile(experimentDir{splitId}, rawFn);
     if exist(fn, 'file')
         fprintf('[%s]: data already exists for train/test split %d; re-using...\n', ...
                 mfilename, splitId);
         continue;
+    else
+        fprintf('[%s]: Creating train/test split %d (of %d)\n', mfilename, splitId, p_.nSplits);
     end
   
     % load raw images (if we haven't already)
@@ -97,14 +101,15 @@ for splitId = 1:p_.nSplits
         data = load_image_dataset(p_.imageDir, p_.sz);
         loadedRawImagesYet=true;
         
-        % TEMP - reduce data set size to 2 classes for faster testing
+        % TEMP - reduce data set size to 2 classes for faster
+        % testing
+        % REMOVE THIS AFTER DONE TESTING!!!
         yAll = unique(data.y);
         idx = (data.y == yAll(1)) | (data.y == yAll(2));
         data.y = data.y(idx);
         data.X = data.X(:,:,idx);
     end
     
-    fprintf('[%s]: Creating train/test split %d (of %d)\n', mfilename, splitId, p_.nSplits);
     [isTrain, isTest] = select_n(data.y, p_.nTrain, p_.nTest);
 
     train.I = data.X(:,:,isTrain);
@@ -130,7 +135,7 @@ clear data;
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     % input file
-    fnRaw = fullfile(eDir, 'data.mat');
+    fnRaw = fullfile(eDir, rawFn);
    
     % output files (one for each feature type)
     fnSIFT = fullfile(eDir, siftFn);
@@ -163,7 +168,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
    
     
     %% Wavelet
-    if ~exist(fnGabor,'file')
+    if ~exist(fnWavelet,'file')
         % TODO
     end
 end
@@ -175,28 +180,44 @@ end
 wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
 wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
-featFiles = {siftFn, gaborFn, waveletFn};
+% TODO: replace when we have gab
+%featFiles = {siftFn, gaborFn, waveletFn};
+featFiles = {siftFn};
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     fprintf('[%s]: starting train/test split %d (of %d)\n', ...
             mfilename, ii, length(experimentDir));
 
     for jj = 1:length(featFiles), featFile=featFiles{jj};
-        fn = fullfile(eDir, featFile);
-        load(fn, 'feats');
- 
-        % Step 1: select pooling hyper-parameters (for maxfun, sos, etc.)
+        fnIn = fullfile(eDir, featFile);
+        fnOut = strrep(fnIn, 'feat', 'svm');
+        
+        if exist(fnOut, 'file')
+            fprintf('[%s]: estimates already exist: %s\n', mfilename, fnOut);
+            continue;
+        end
+        
+        fprintf('[%s]: analyzing features from file %s\n', mfilename, fnIn);
+        load(fnIn, 'feats');
+        
+        % Step 1: select pooling hyper-parameters (for maxfun, sos)
+        %   
         pcvTimer = tic;
         pFoldId = assign_folds(feats.train.y, 5);
+        
+        fprintf('[%s]: selecting hyperparameter for MAXFUN pooling...\n', mfilename);
         pMF = select_scalar_pooling_param(feats.train.X, feats.train.y, wi_mf_pool, 4:2:20, pFoldId); 
+        
+        fprintf('[%s]: selecting hyperparameter for SOS pooling...\n', mfilename);
         pSOS = select_scalar_pooling_param(feats.train.X, feats.train.y, wi_sos_pool, 6:2:24, pFoldId); 
+        
         fprintf('[%s]: runtime for pooling parameter selection: %0.2f (min)\n', ...
                 mfilename, toc(pcvTimer)/60.);
-        
+
         % Step 2: pool features and classify.  
         %
-        % For now, we are only doing "whole image" pooling.  For
-        % real-world applications, we would do something less naive.
+        % For now, we are only doing "whole image" pooling.  
+        % Could use spatial_pool() to implement grid pooling...
         %
         poolfuncs = { @(X) spatial_pool(X, 'avg'), ...
                       @(X) spatial_pool(X, 'max'), ...
@@ -204,16 +225,23 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
                       @(X) spatial_pool(X, 'fun', pMF), ...
                       @(X) spatial_pool(X, 'sos', pSOS)};
 
+        Yhat = zeros(numel(feats.test.y), length(poolfuncs)+1);
+        Yhat(:,1) = feats.test.y;
         for kk = 1:length(poolfuncs), f_pool = poolfuncs{kk};
             Xtrain = f_pool(feats.train.X);
             Xtest = f_pool(feats.test.X);
             % The transpose below is because the SVM codes all want objects-as-rows.
             [yHat, metrics] = eval_svm(Xtrain', feats.train.y, Xtest', feats.test.y);
-            metrics.acc % TEMP
+            Yhat(:,kk+1) = yHat(:);
+            metrics.CM
         end
+
+        % save truth and estimates to file for later analysis if desired
+        save(fnOut, 'Yhat');
+        
+        clear feats;
     end
 end
-
 
  
 diary off;
