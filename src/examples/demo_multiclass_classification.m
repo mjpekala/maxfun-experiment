@@ -46,6 +46,16 @@ switch lower(p_.experiment)
     error(sprintf('unrecognized experiment name: %s', p_.experiment));
 end
 
+p_.gabor.M = p_.sz(1);        % see Gabor_construct.m
+p_.gabor.b = p_.gabor.M / 8;  % see  " "
+p_.gabor.sigma = p_.gabor.b;  % see  " "
+
+p_.sift.subsamp = 1;          % see sift_macrofeatures.m
+p_.sift.step = 4;             % see  " "
+p_.sift.macrosl = 2;          % see  " "
+
+p_.wavelet.J = 4;             % see wavelet_feature.m
+
 p_.rootDir = fullfile('Outputs', [p_.experiment '_seed' num2str(p_.seed)]);
 
 rng(p_.seed);
@@ -66,10 +76,17 @@ waveletFn = 'feat_wavelet.mat';
 shuffle = @(x) x(randperm(numel(x)));
 make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 
-% note: could change SIFT parameters if desired
-run_sift = @(I) sift_macrofeatures(single(I), ...
-                                   'subsamp', 1, 'step', 4, 'macrosl', 2);
+% Note: making these intermediate lambda functions introduces some
+% inefficiency.  However, for now we don't worry about this.
+run_sift = @(I) sift_macrofeatures(single(I), ... 
+                                   'subsamp', p_.sift.subsamp, ...
+                                   'step', p_.sift.step, ...
+                                   'macrosl', p_.sift.macrosl);
 
+G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
+run_gabor = @(I) Gabor_transform(I, G);
+
+run_wavelet = @(I) wavelet_feature(I, P_.wavelet.J);
 
 
 %% Pre-genenerate train/test splits for each experiment
@@ -163,13 +180,23 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     
     %% Gabor
     if ~exist(fnGabor,'file')
-        % TODO
+        feats.train.X = map_image(train.I, run_gabor);
+        feats.train.y = train.y;
+        feats.test.X  = map_image(test.I, run_gabor);
+        feats.test.y = test.y;
+        save(fnGabor, 'feats');
+        clear feats;
     end
    
     
     %% Wavelet
     if ~exist(fnWavelet,'file')
-        % TODO
+        feats.train.X = map_image(train.I, run_wavelet);
+        feats.train.y = train.y;
+        feats.test.X  = map_image(test.I, run_wavelet);
+        feats.test.y = test.y;
+        save(fnWavelet, 'feats');
+        clear feats;
     end
 end
 
@@ -180,8 +207,7 @@ end
 wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
 wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
-%featFiles = {siftFn, gaborFn, waveletFn};
-featFiles = {siftFn};  % TODO / TEMP
+featFiles = {siftFn, gaborFn, waveletFn};
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     fprintf('[%s]: starting train/test split %d (of %d)\n', ...
@@ -245,6 +271,7 @@ end
 %% Post-processing / analysis
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
+    % TODO  aggregate across folds and report results
 end
 
 
