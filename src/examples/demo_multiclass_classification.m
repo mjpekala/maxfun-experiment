@@ -1,4 +1,4 @@
-%  MULTICLASS_CLASSIFICATION  
+%  DEMO_MULTICLASS_CLASSIFICATION  
 %
 %   Compare the impact of different features and pooling strategies on
 %   one-vs-all image classification problems.  Originally this code
@@ -9,6 +9,12 @@
 %   We save results incrementally as we go, so if you re-run the
 %   script at a later time it will load the intermediate results from
 %   file (vs recompute them from scratch).
+%
+%   There is also some attempt to avoid keeping too much data in
+%   memory all at once (some feature sets can get large).  In
+%   particular, we try to work with only one data split and one
+%   representation at a time.  This introduces some "excess" file I/O;
+%   improving upon the current implementation is certainly possible.
 %
 %
 % REFERENCES:
@@ -32,7 +38,8 @@ p_.nAtoms = 128;  % set to a non-positive value if you don't want
 switch lower(p_.experiment)
   case {'caltech-101', 'caltech101'}
     p_.imageDir = '/Users/pekalmj1/Data/caltech_101/101_ObjectCategories';
-    p_.sz = [200 300];    % assume fixed-size inputs in this script
+    %p_.sz = [200 300];    % assume fixed-size inputs in this script
+    p_.sz = [200 200];    % TEMP - keep square for Gabor
     p_.nTrain = 30;       % see section 2.3 in [1] and also [3]
     p_.nTest = 30;        % see [3]
       
@@ -86,7 +93,7 @@ run_sift = @(I) sift_macrofeatures(single(I), ...
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 run_gabor = @(I) Gabor_transform(I, G);
 
-run_wavelet = @(I) wavelet_feature(I, P_.wavelet.J);
+run_wavelet = @(I) wavelet_feature(I, p_.wavelet.J);
 
 
 %% Pre-genenerate train/test splits for each experiment
@@ -148,7 +155,12 @@ clear data;
 
 
 
-%% Generate features
+%% Generate pooled features
+
+% Note that we pool immediately after creating features; otherwise,
+% file sizes of unpooled features can be huge.
+
+error('TODO: pool right after featurizing');
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     % input file
@@ -170,33 +182,40 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
 
     %% SIFT
     if ~exist(fnSIFT, 'file')
+        tic
         feats.train.X = map_image(train.I, run_sift);
         feats.train.y = train.y;
         feats.test.X  = map_image(test.I, run_sift);
         feats.test.y = test.y;
-        save(fnSIFT, 'feats');
+        save(fnSIFT, 'feats', '-v7.3');
         clear feats; 
+        toc
     end
     
     %% Gabor
     if ~exist(fnGabor,'file')
+        tic
+        % TODO: downsampling?  Otherwise, is huge.
         feats.train.X = map_image(train.I, run_gabor);
         feats.train.y = train.y;
         feats.test.X  = map_image(test.I, run_gabor);
         feats.test.y = test.y;
-        save(fnGabor, 'feats');
+        save(fnGabor, 'feats', '-v7.3');
         clear feats;
+        toc
     end
    
     
     %% Wavelet
     if ~exist(fnWavelet,'file')
-        feats.train.X = map_image(train.I, run_wavelet);
-        feats.train.y = train.y;
-        feats.test.X  = map_image(test.I, run_wavelet);
-        feats.test.y = test.y;
-        save(fnWavelet, 'feats');
-        clear feats;
+        tic
+        %feats.train.X = map_image(train.I, run_wavelet);
+        %feats.train.y = train.y;
+        %feats.test.X  = map_image(test.I, run_wavelet);
+        %feats.test.y = test.y;
+        %save(fnWavelet, 'feats', '-v7.3');
+        %clear feats;
+        toc
     end
 end
 
@@ -207,7 +226,8 @@ end
 wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
 wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
-featFiles = {siftFn, gaborFn, waveletFn};
+%featFiles = {siftFn, gaborFn, waveletFn};
+featFiles = {siftFn, gaborFn};
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     fprintf('[%s]: starting train/test split %d (of %d)\n', ...
@@ -261,7 +281,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         end
 
         % save truth and estimates to file for later analysis if desired
-        save(fnOut, 'Yhat');
+        save(fnOut, 'Yhat', '-v7.3');
         
         clear feats;
     end
