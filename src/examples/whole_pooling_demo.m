@@ -1,4 +1,4 @@
-% CLASSIFICATION_EXPERIMENT_1  
+% DEMO_SIFT_AND_POOLING
 %
 %   This (failed) experiment compared pooling techniques within the
 %   context of a binary classification problem.  In this problem
