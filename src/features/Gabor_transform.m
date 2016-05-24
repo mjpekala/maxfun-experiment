@@ -14,12 +14,8 @@ function coeff = Gabor_transform(f,G)
 F = fftshift(fft2(f)); 
 
 % Fourier transform of frame coefficients
-Coeff = G .* repmat(F,[1,1,size(G,3)]);
+%Coeff = G .* repmat(F,[1,1,size(G,3)]);
+Coeff = bsxfun(@times, F, G);  % mjp
 
 % take the inverse transform
 coeff = ifft_help(Coeff);
-
-
-
-
-
