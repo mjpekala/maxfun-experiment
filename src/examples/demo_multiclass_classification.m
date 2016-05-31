@@ -84,8 +84,18 @@ waveletFn = 'feat_wavelet.mat';
 
 %% some helper functions
 
+% shuffle: returns a randomly permuted copy of x
 shuffle = @(x) x(randperm(numel(x)));
+
+% make_dir: create a directory only if it does not already exist.
 make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
+
+% downsample: downsamples an image with dimensions
+%   (rows x cols x n_channels x n_examples)
+% 
+downsample_rows = @(I,p) I(1:p:end,:,:,:);
+downsample_cols = @(I,p) I(:,1:p:end,:,:);
+downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 
 % Note: making these intermediate lambda functions introduces some
 % inefficiency.  However, for now we don't worry about this.
@@ -95,17 +105,10 @@ run_sift = @(I) sift_macrofeatures(single(I), ...
                                    'macrosl', p_.sift.macrosl);
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
-run_gabor = @(I) Gabor_transform(I, G);
+run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
 
 run_wavelet = @(I) wavelet_feature(I, p_.wavelet.J);
 
-
-% code to downsample an image with dimensions 
-%   (rows x cols x n_channels x n_examples)
-% Could be done more efficiently, but this is easy.
-downsample_rows = @(I,p) I(1:p:end,:,:,:);
-downsample_cols = @(I,p) I(:,1:p:end,:,:);
-downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 
 
 %% Pre-genenerate train/test splits for each experiment
@@ -184,7 +187,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
  
     % if we reached this point, some subset of the features needs to be
     % computed, so load the data.
-    fprintf('[%s]: Generating features for train/test split %d (of %d)\n', mfilename, ii, p_.nSplits);
+    fprintf('[%s]: Loading data for train/test split %d (of %d)\n', mfilename, ii, p_.nSplits);
     load(fnRaw, 'train', 'test');
 
     
@@ -210,11 +213,9 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         fprintf('[%s]: generating Gabor features...\n', mfilename);
         tic
         % TODO: complex -> real?
-        feats.train.X = downsample(map_image(train.I, run_gabor), ...
-                                   p_.downsample);
+        feats.train.X = map_image(train.I, run_gabor);
         feats.train.y = train.y;
-        feats.test.X  = downsample(map_image(test.I, run_gabor), ...
-                                   p_.downsample);
+        feats.test.X  = map_image(test.I, run_gabor);
         feats.test.y = test.y;
         toc
         
