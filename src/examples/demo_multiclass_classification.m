@@ -137,13 +137,13 @@ for splitId = 1:p_.nSplits
         data = load_image_dataset(p_.imageDir, p_.sz);
         loadedRawImagesYet=true;
         
-        % TEMP - reduce data set size to 2 classes for faster
-        % testing
         % REMOVE THIS AFTER DONE TESTING!!!
-        yAll = unique(data.y);
-        idx = (data.y == yAll(1)) | (data.y == yAll(2));
-        data.y = data.y(idx);
-        data.X = data.X(:,:,idx);
+        if 0
+            yAll = unique(data.y);
+            idx = (data.y == yAll(1)) | (data.y == yAll(2));
+            data.y = data.y(idx);
+            data.X = data.X(:,:,idx);
+        end
     end
     
     [isTrain, isTest] = select_n(data.y, p_.nTrain, p_.nTest);
@@ -190,11 +190,16 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     
     %% SIFT
     if ~exist(fnSIFT, 'file')
+        fprintf('[%s]: generating SIFT features...\n', mfilename);
         tic
         feats.train.X = map_image(train.I, run_sift);
         feats.train.y = train.y;
         feats.test.X  = map_image(test.I, run_sift);
         feats.test.y = test.y;
+        toc
+        
+        tic
+        fprintf('[%s]: saving SIFT features...\n', mfilename);
         save(fnSIFT, 'feats', '-v7.3');
         clear feats; 
         toc
@@ -202,6 +207,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
 
     %% Gabor
     if ~exist(fnGabor,'file')
+        fprintf('[%s]: generating Gabor features...\n', mfilename);
         tic
         % TODO: complex -> real?
         feats.train.X = downsample(map_image(train.I, run_gabor), ...
@@ -210,6 +216,10 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         feats.test.X  = downsample(map_image(test.I, run_gabor), ...
                                    p_.downsample);
         feats.test.y = test.y;
+        toc
+        
+        tic
+        fprintf('[%s]: saving Gabor features...\n', mfilename);
         save(fnGabor, 'feats', '-v7.3');
         clear feats;
         toc
@@ -217,11 +227,16 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
 
     %% Wavelet
     if ~exist(fnWavelet,'file')
+        fprintf('[%s]: generating wavelet features...\n', mfilename);
         tic
         feats.train.X = map_image(train.I, run_wavelet);
         feats.train.y = train.y;
         feats.test.X  = map_image(test.I, run_wavelet);
         feats.test.y = test.y;
+        toc
+       
+        tic
+        fprintf('[%s]: saving wavelet features...\n', mfilename);
         save(fnWavelet, 'feats', '-v7.3');
         clear feats;
         toc
@@ -235,6 +250,8 @@ end
 wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
 wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
+% TODO: re-enable wavelet features once they are the same
+% dimensions as the other feature maps.
 %featFiles = {siftFn, gaborFn, waveletFn};
 featFiles = {siftFn, gaborFn};
 
