@@ -31,7 +31,7 @@
 p_.seed = 9999;
 p_.experiment = 'caltech-101';
 %p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
-p_.nSplits = 2;  % TEMP
+p_.nSplits = 2;  % TEMP - only using two splits while debugging
 p_.nAtoms = 128;  % set to a non-positive value if you don't want
                   % sparse coded features.
 
@@ -53,13 +53,17 @@ switch lower(p_.experiment)
     error(sprintf('unrecognized experiment name: %s', p_.experiment));
 end
 
+p_.downsample = 4; 
+
 p_.gabor.M = p_.sz(1);        % see Gabor_construct.m
 p_.gabor.b = p_.gabor.M / 8;  % see  " "
 p_.gabor.sigma = p_.gabor.b;  % see  " "
 
 p_.sift.subsamp = 1;          % see sift_macrofeatures.m
-p_.sift.step = 4;             % see  " "
-p_.sift.macrosl = 2;          % see  " "
+p_.sift.step = p_.downsample; % see  " "
+p_.sift.macrosl = 1;          % see  " "
+                              % Note: don't use macrofeatures
+                              % since there is no sparse coding
 
 p_.wavelet.J = 4;             % see wavelet_feature.m
 
@@ -87,13 +91,21 @@ make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 % inefficiency.  However, for now we don't worry about this.
 run_sift = @(I) sift_macrofeatures(single(I), ... 
                                    'subsamp', p_.sift.subsamp, ...
-                                   'step', p_.sift.step, ...
+                                   'step', p_.downsample, ...
                                    'macrosl', p_.sift.macrosl);
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 run_gabor = @(I) Gabor_transform(I, G);
 
 run_wavelet = @(I) wavelet_feature(I, p_.wavelet.J);
+
+
+% code to downsample an image with dimensions 
+%   (rows x cols x n_channels x n_examples)
+% Could be done more efficiently, but this is easy.
+downsample_rows = @(I,p) I(1:p:end,:,:,:);
+downsample_cols = @(I,p) I(:,1:p:end,:,:);
+downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 
 
 %% Pre-genenerate train/test splits for each experiment
@@ -155,12 +167,7 @@ clear data;
 
 
 
-%% Generate pooled features
-
-% Note that we pool immediately after creating features; otherwise,
-% file sizes of unpooled features can be huge.
-
-error('TODO: pool right after featurizing');
+%% Generate features
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     % input file
@@ -180,6 +187,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     fprintf('[%s]: Generating features for train/test split %d (of %d)\n', mfilename, ii, p_.nSplits);
     load(fnRaw, 'train', 'test');
 
+    
     %% SIFT
     if ~exist(fnSIFT, 'file')
         tic
@@ -191,30 +199,31 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         clear feats; 
         toc
     end
-    
+
     %% Gabor
     if ~exist(fnGabor,'file')
         tic
-        % TODO: downsampling?  Otherwise, is huge.
-        feats.train.X = map_image(train.I, run_gabor);
+        % TODO: complex -> real?
+        feats.train.X = downsample(map_image(train.I, run_gabor), ...
+                                   p_.downsample);
         feats.train.y = train.y;
-        feats.test.X  = map_image(test.I, run_gabor);
+        feats.test.X  = downsample(map_image(test.I, run_gabor), ...
+                                   p_.downsample);
         feats.test.y = test.y;
         save(fnGabor, 'feats', '-v7.3');
         clear feats;
         toc
     end
-   
-    
+
     %% Wavelet
     if ~exist(fnWavelet,'file')
         tic
-        %feats.train.X = map_image(train.I, run_wavelet);
-        %feats.train.y = train.y;
-        %feats.test.X  = map_image(test.I, run_wavelet);
-        %feats.test.y = test.y;
-        %save(fnWavelet, 'feats', '-v7.3');
-        %clear feats;
+        feats.train.X = map_image(train.I, run_wavelet);
+        feats.train.y = train.y;
+        feats.test.X  = map_image(test.I, run_wavelet);
+        feats.test.y = test.y;
+        save(fnWavelet, 'feats', '-v7.3');
+        clear feats;
         toc
     end
 end
