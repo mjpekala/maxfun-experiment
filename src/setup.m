@@ -24,6 +24,16 @@ addpath(fullfile(here, 'examples'));
 
 %% Third party dependencies
 
+% Misc. third-party scripts
+% Assumes you are running this script from pwd.
+if ~exist('tight_subplot')
+    thirdPartyDir = fullfile(here, 'thirdparty');
+    addpath(thirdPartyDir);
+    fprintf('[%s]: using "%s" for other third-party codes\n', ...
+            mfilename, thirdPartyDir);
+end
+
+
 % Codes for SIFT [1]
 if ~exist('vl_dsift')
     vlroot = fullfile(appsDir, 'vlfeat-0.9.20');
@@ -55,13 +65,4 @@ if ~exist('svmpredict')
     fprintf('[%s]: using LIBSVM dir "%s"\n', mfilename, libsvmDir);
 end
 
-
-% Other third-party scripts
-% Assumes you are running this script from pwd.
-if ~exist('tight_subplot')
-    thirdPartyDir = fullfile(here, 'thirdparty');
-    addpath(thirdPartyDir);
-    fprintf('[%s]: using "%s" for other third-party codes\n', ...
-            mfilename, thirdPartyDir);
-end
 
