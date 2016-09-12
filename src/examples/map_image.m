@@ -17,6 +17,7 @@ function Y = map_image(T, f, verbose)
 if nargin < 3, verbose=true; end
 
 z = size(T,3);
+if z <= 0, error('input is not a 3d tensor'); end
 
 timer = tic;  lastChatter = -1e3;
 
