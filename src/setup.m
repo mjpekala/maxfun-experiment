@@ -61,7 +61,7 @@ end
 % LIBSVM [3]
 if ~exist('svmpredict')
     libsvmDir = fullfile(appsDir, 'libsvm-3.21', 'matlab');
-    addpath(libsvmDir);
+    addpath(libsvmDir, '-begin');
     fprintf('[%s]: using LIBSVM dir "%s"\n', mfilename, libsvmDir);
 end
 
