@@ -1,18 +1,19 @@
 % DEMO_SIFT_AND_POOLING
 %
-%   This (failed) experiment compared pooling techniques within the
-%   context of a binary classification problem.  In this problem
-%   objects of class A are images consisting predominantly of gaussian
-%   noise except for a small region where there is some deterministic
-%   oscillation.  Objects of class B are purely gaussian noise.
+%   This experiment compares pooling techniques within the context of
+%   a binary classification problem.  In this problem objects of class
+%   A are images consisting predominantly of gaussian noise except for
+%   a small region where there is some deterministic oscillation.
+%   Objects of class B are purely gaussian noise.
 %
-%   This experiment turned out to be uninformative in that, while
-%   there was a clear difference in the performance of pooling
-%   techniques on the raw input images, the simple process of
-%   running SIFT on these images generated features that rendered
-%   these two classes trivially separable.  This suggests that more
-%   care needs to be placed in setting up the classification
-%   problem of interest.
+%   The hope was to observe that maxfun pooling provides some
+%   quantitative advantage in this setting. This experiment turned out
+%   to be uninformative in that, while there was a clear difference in
+%   the performance of pooling techniques on the raw input images, the
+%   simple process of running SIFT on these images generated features
+%   that rendered these two classes trivially separable.  This
+%   suggests that more care needs to be placed in setting up the
+%   classification problem of interest.
 %
 
 % mjp, may 2016
@@ -79,10 +80,11 @@ P(:,5) = spatial_pool(data.Xraw(:,:,data.y==0), 'fun', 10);  % choose 10 arbitra
 P(:,6) = spatial_pool(data.Xraw(:,:,data.y==1), 'fun', 10);  % choose 10 arbitrarily
 
 figure; 
-title('Pooling raw image data');
+title('Pooling raw image data (two classes, A and B)');
 boxplot(P, 'labels', ...
         {'avg A', 'avg B', 'max A', 'max B', 'fun A', 'fun B'});
 ylabel('pool value');
+title('whole image pooling, input space');
 drawnow;
 
 
