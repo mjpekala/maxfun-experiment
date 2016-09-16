@@ -165,7 +165,9 @@ for ii = 1:nFolds
 end
 toc
 
-Acc
+fprintf('[%s]: accuracies over %d folds (rows) for average, max and maxfun pooling (columns)\n', ...
+        mfilename, nFolds);
+Acose
 
 
 
