@@ -64,6 +64,7 @@ end
 
 
 % spatial subsampling
+% Q: why needed?  isn't this just the step parameter?
 if subsamp > 1
     X = X(1:subsamp:end,:,:);
     X = X(:,1:subsamp:end,:);
