@@ -25,10 +25,10 @@ function X = sift_macrofeatures(I, varargin)
 % [1,2] (which are not the same experiment, so keep this in mind).
 parser = inputParser;
 parser.addRequired('I', @(X) ndims(X) == 2);
-parser.addParameter('step', 4, @(x) x > 0);     % see 3.2 in [1]
-parser.addParameter('macrosl', 2, @(x) x > 0);  % see 3.2 in [1]
-parser.addParameter('subsamp', 4, @(x) x > 0);  % see 3.2 in [1]
-parser.addParameter('sz', 4, @(x) x > 0);       % see 2.3 in [2]
+parser.addParameter('step', 4, @(x) x > 0);      % see 3.2 in [1]
+parser.addParameter('macrosl', 2, @(x) x >= 0);  % see 3.2 in [1]
+parser.addParameter('subsamp', 4, @(x) x >= 0);  % see 3.2 in [1]
+parser.addParameter('sz', 4, @(x) x > 0);        % see 2.3 in [2]
 parser.parse(I, varargin{:});
 
 sz = parser.Results.sz;
@@ -53,6 +53,7 @@ end
 nCol = length(unique(f(1,:)));
 nRow = length(unique(f(2,:)));
 nChan = size(d,1);  % usually 128
+if nChan ~= 128, warning('unexpected # feature dimensions'); end
 X = reshape(d.', nRow, nCol, nChan); 
 
 if 0
