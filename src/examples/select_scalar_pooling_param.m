@@ -15,11 +15,10 @@ function pMax = select_scalar_pooling_param(X, y, f_pool, pAll, foldId)
 %    pAll   : A set of scalar parameters to search over for the pooling function.
 %
 %  Uses mean accuracy obtained by applying a linear SVM to multiple
-%  train/test splits to decide which parameter is best.  
+%  train/validation splits to decide which parameter is best.  
 %
 %  *** An implicit assumption is that the X provided by the caller
-%  contains only training data (so the train/test splits induced here
-%  are more like train/validation splits). ***
+%  contains only training data ***
 
 % mjp, april 2016
 
@@ -42,26 +41,26 @@ else,  vprintf = @(varargin) 0; end
 
 
 %% do it
-vprintf('[%s]: Searching over %d parameter values using %d train/test splits\n', ...
+vprintf('[%s]: Searching over %d parameter values using %d train/valid splits\n', ...
         mfilename, length(pAll), nFolds);
 
 P = zeros(length(pAll), nFolds);
 for ii = 1:nFolds
     vprintf('[%s]: starting split %d (of %d)\n', mfilename, ii, nFolds);
 
-    % create a train/test split
+    % create a train/valid split
     isTrain = foldId ~= allFoldIds(ii);
     train.y = y(isTrain);
-    test.y = y(~isTrain);
+    valid.y = y(~isTrain);
     
     % apply pooling function 
     train.X = f_pool(X(:,:,:,isTrain), pAll);
-    test.X  = f_pool(X(:,:,:,~isTrain), pAll);
+    valid.X  = f_pool(X(:,:,:,~isTrain), pAll);
         
     for jj = 1:length(pAll)
         % evaluate performance
         % (the transpose is to put the #examples dimension first)
-        [~,metrics] = eval_svm(train.X{jj}', train.y, test.X{jj}', test.y);
+        [~,metrics] = eval_svm(train.X{jj}', train.y, valid.X{jj}', valid.y);
         P(jj,ii) = metrics.nCorrect;
     end
 end
