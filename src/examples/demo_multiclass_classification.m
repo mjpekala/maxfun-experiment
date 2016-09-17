@@ -30,8 +30,7 @@
 
 p_.seed = 9999;
 p_.experiment = 'caltech-101';
-%p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
-p_.nSplits = 2;    % TEMP - only using two splits while debugging
+p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
 
 p_.classesToUse = [];
 
@@ -150,7 +149,7 @@ for splitId = 1:p_.nSplits
 
         % pare down to classes of interest
         if ~ isempty(p_.classesToUse)
-            fprintf('[%s]: reducing to a %d class problem!!', mfilename, numel(p_.classesToUse));
+            fprintf('[%s]: reducing to a %d class problem!!\n', mfilename, numel(p_.classesToUse));
             idx = ismember(data.y, p_.classesToUse);
             data.y = data.y(idx);
             data.X = data.X(:,:,idx);
