@@ -15,6 +15,11 @@
 %   suggests that more care needs to be placed in setting up the
 %   classification problem of interest.
 %
+%   One thought is that if maxfun is well suited to identifying
+%   oscillatory signals, we would like a signal representation that
+%   manifests these features.  Oscillations in the input space is
+%   seemingly well-addressed by SIFT.
+%
 
 % mjp, may 2016
 
