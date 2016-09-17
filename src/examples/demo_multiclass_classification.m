@@ -2,13 +2,13 @@
 %
 %   Compare the impact of different features and pooling strategies on
 %   one-vs-all image classification problems.  Originally this code
-%   started as a way to repeat/extend the experiments of [1].
+%   started as a way to extend the experiments of [1].
 %
 %   This script is broken down into sections; earlier sections do data
 %   preprocessing and later steps run the classification experiment.
-%   We save results incrementally as we go, so if you re-run the
-%   script at a later time it will load the intermediate results from
-%   file (vs recompute them from scratch).
+%   Results are saved incrementally so that re-running the script at a
+%   later time it will not have to recompute everything from scratch
+%   (it takes awhile to generate some of the features).
 %
 %   There is also some attempt to avoid keeping too much data in
 %   memory all at once (some feature sets can get large).  In
@@ -31,17 +31,23 @@
 p_.seed = 9999;
 p_.experiment = 'caltech-101';
 %p_.nSplits = 10;  % FWIW, in section 2.3 in [1], the authors use 10 splits.
-p_.nSplits = 2;  % TEMP - only using two splits while debugging
-p_.nAtoms = 128;  % set to a non-positive value if you don't want
-                  % sparse coded features.
+p_.nSplits = 2;    % TEMP - only using two splits while debugging
 
+p_.classesToUse = [];
+
+
+% NOTE: some of the paths below assume you are running this script from pwd.
+%       Make sure to change as appropriate.
 switch lower(p_.experiment)
   case {'caltech-101', 'caltech101'}
-    p_.imageDir = '/Users/pekalmj1/Data/caltech_101/101_ObjectCategories';
+    p_.imageDir = '../datasets/101_ObjectCategories';
     %p_.sz = [200 300];    % assume fixed-size inputs in this script
-    p_.sz = [200 200];    % TEMP - keep square for Gabor
+    p_.sz = [200 200];    % XXX: keep square for Gabor feature code
     p_.nTrain = 30;       % see section 2.3 in [1] and also [3]
     p_.nTest = 30;        % see [3]
+   
+    % TEMP: use only classes with >= 100 examples
+    p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
       
   case {'kth_tips'}
     p_.imageDir = '/Users/pekalmj1/Data/KTH_TIPS';
@@ -53,23 +59,20 @@ switch lower(p_.experiment)
     error(sprintf('unrecognized experiment name: %s', p_.experiment));
 end
 
-p_.downsample = 4; 
+p_.downsample = 4;            % feature space downsampling; 
+                              % applies to all feature approaches
 
 p_.gabor.M = p_.sz(1);        % see Gabor_construct.m
 p_.gabor.b = p_.gabor.M / 8;  % see  " "
 p_.gabor.sigma = p_.gabor.b;  % see  " "
 
-p_.sift.subsamp = 1;          % see sift_macrofeatures.m
-p_.sift.step = p_.downsample; % see  " "
-p_.sift.macrosl = 1;          % see  " "
-                              % Note: don't use macrofeatures
-                              % since there is no sparse coding
+p_.sift.size = 4;             % see dl_vsift
 
 p_.wavelet.J = 4;             % see wavelet_feature.m
 
-p_.rootDir = fullfile('Outputs', [p_.experiment '_seed' num2str(p_.seed)]);
+p_.rootDir = fullfile('DMC_Outputs', [p_.experiment '_seed' num2str(p_.seed)]);
 
-rng(p_.seed);
+rng(p_.seed, 'twister');
 timestamp = datestr(now);
 overallTimer = tic;
 
@@ -93,22 +96,23 @@ make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 % downsample: downsamples an image with dimensions
 %   (rows x cols x n_channels x n_examples)
 % 
+% Note: making these intermediate lambda functions introduces some
+% inefficiency.  However, for now we don't worry about this.
+%
 downsample_rows = @(I,p) I(1:p:end,:,:,:);
 downsample_cols = @(I,p) I(:,1:p:end,:,:);
 downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 
-% Note: making these intermediate lambda functions introduces some
-% inefficiency.  However, for now we don't worry about this.
-run_sift = @(I) sift_macrofeatures(single(I), ... 
-                                   'subsamp', p_.sift.subsamp, ...
-                                   'step', p_.downsample, ...
-                                   'macrosl', p_.sift.macrosl);
+% this function just runs sift (without macrofeatures)
+run_sift = @(I) sift_macrofeatures(single(I), 'step', p_.downsample, 'sz', p_.sift.size, 'subsamp', 0, 'macrosl', 0);
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
 
-run_wavelet = @(I) wavelet_feature(I, p_.wavelet.J);
+run_wavelet = @(I) downsample(wavelet_feature(I, p_.wavelet.J), p_.downsample);
 
+wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
+wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
 
 %% Pre-genenerate train/test splits for each experiment
@@ -138,17 +142,21 @@ for splitId = 1:p_.nSplits
     % load raw images (if we haven't already)
     if ~loadedRawImagesYet
         data = load_image_dataset(p_.imageDir, p_.sz);
+        if numel(data.y) == 0
+            error('failed to load dataset!  Did you download it yet?');
+        end
+
         loadedRawImagesYet=true;
-        
-        % REMOVE THIS AFTER DONE TESTING!!!
-        if 0
-            yAll = unique(data.y);
-            idx = (data.y == yAll(1)) | (data.y == yAll(2));
+
+        % pare down to classes of interest
+        if ~ isempty(p_.classesToUse)
+            fprintf('[%s]: reducing to a %d class problem!!', mfilename, numel(p_.classesToUse));
+            idx = ismember(data.y, p_.classesToUse);
             data.y = data.y(idx);
             data.X = data.X(:,:,idx);
         end
     end
-    
+ 
     [isTrain, isTest] = select_n(data.y, p_.nTrain, p_.nTest);
 
     train.I = data.X(:,:,isTrain);
@@ -175,7 +183,7 @@ clear data;
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
     % input file
     fnRaw = fullfile(eDir, rawFn);
-   
+ 
     % output files (one for each feature type)
     fnSIFT = fullfile(eDir, siftFn);
     fnGabor = fullfile(eDir, gaborFn);
@@ -201,8 +209,11 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         feats.test.y = test.y;
         toc
         
-        tic
+        fprintf('[%s]: training data set size: %s\n', mfilename, num2str(size(feats.train.X)));
+        fprintf('[%s]: test data set size:     %s\n', mfilename, num2str(size(feats.test.X)));
         fprintf('[%s]: saving SIFT features...\n', mfilename);
+        
+        tic
         save(fnSIFT, 'feats', '-v7.3');
         clear feats; 
         toc
@@ -219,8 +230,11 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         feats.test.y = test.y;
         toc
         
-        tic
+        fprintf('[%s]: training data set size: %s\n', mfilename, num2str(size(feats.train.X)));
+        fprintf('[%s]: test data set size:     %s\n', mfilename, num2str(size(feats.test.X)));
         fprintf('[%s]: saving Gabor features...\n', mfilename);
+        
+        tic
         save(fnGabor, 'feats', '-v7.3');
         clear feats;
         toc
@@ -236,8 +250,11 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
         feats.test.y = test.y;
         toc
        
-        tic
+        fprintf('[%s]: training data set size: %s\n', mfilename, num2str(size(feats.train.X)));
+        fprintf('[%s]: test data set size:     %s\n', mfilename, num2str(size(feats.test.X)));
         fprintf('[%s]: saving wavelet features...\n', mfilename);
+        
+        tic
         save(fnWavelet, 'feats', '-v7.3');
         clear feats;
         toc
@@ -248,8 +265,6 @@ end
 
 %% Pooling and classification
 
-wi_sos_pool = @(X, k) spatial_pool(X, 'sos', k);
-wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 
 % TODO: re-enable wavelet features once they are the same
 % dimensions as the other feature maps.
@@ -257,7 +272,7 @@ wi_mf_pool = @(X, k) spatial_pool(X, 'fun', k);
 featFiles = {siftFn, gaborFn};
 
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
-    fprintf('[%s]: starting train/test split %d (of %d)\n', ...
+    fprintf('[%s]: CLASSIFY - starting train/test split %d (of %d)\n', ...
             mfilename, ii, length(experimentDir));
 
     for jj = 1:length(featFiles), featFile=featFiles{jj};
@@ -288,8 +303,14 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
 
         % Step 2: pool features and classify.  
         %
-        % For now, we are only doing "whole image" pooling.  
-        % Could use spatial_pool() to implement grid pooling...
+        % For now, we are only doing "whole image" pooling; in the
+        % future one could use pooling_regions() to implement spatial
+        % pooling; of course, this raises the question as to how this
+        % should be vectorized for the SVM.
+        %
+        % Thus, currently the input to the SVM is a nxm matrix where n
+        % is the number of dimensions from the feature code (e.g. 128
+        % for SIFT) and m is the number of examples.
         %
         poolfuncs = { @(X) spatial_pool(X, 'avg'), ...
                       @(X) spatial_pool(X, 'max'), ...
