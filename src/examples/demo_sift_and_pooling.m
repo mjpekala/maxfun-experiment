@@ -172,8 +172,7 @@ toc
 
 fprintf('[%s]: accuracies over %d folds (rows) for average, max and maxfun pooling (columns)\n', ...
         mfilename, nFolds);
-Acose
-
+Acc
 
 
 % Just for grins, take a look at a low-dimensional representation of
