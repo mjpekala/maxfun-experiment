@@ -318,7 +318,7 @@ for ii = 1:length(experimentDir), eDir = experimentDir{ii};
                       @(X) spatial_pool(X, 'sos', pSOS)};
 
         Yhat = zeros(numel(feats.test.y), length(poolfuncs)+1);
-        Yhat(:,1) = feats.test.y;
+        Yhat(:,1) = feats.test.y;  % first column is truth
         for kk = 1:length(poolfuncs), f_pool = poolfuncs{kk};
             Xtrain = f_pool(feats.train.X);
             Xtest = f_pool(feats.test.X);
@@ -336,10 +336,40 @@ end
 
 
 %% Post-processing / analysis
+%
+% This is simply aggregating results across the various train/test splits.
 
+Yhat_sift = [];
+Yhat_gabor = [];
+Yhat_wavelet = [];
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
-    % TODO  aggregate across folds and report results
+    % classification results for SIFT features
+    fn = fullfile(eDir, 'svm_SIFT.mat');
+    if exist(fn), 
+        load(fn);
+        Yhat_sift = [Yhat_sift ; Yhat];
+    end
+    
+    % classification results for Gabor features
+    fn = fullfile(eDir, 'svm_Gabor.mat');
+    if exist(fn), 
+        load(fn);
+        Yhat_gabor = [Yhat_gabor ; Yhat];
+    end
+    
+    % classification results for wavelet features
+    fn = fullfile(eDir, 'svm_wavelet.mat');
+    if exist(fn), 
+        load(fn);
+        Yhat_wavelet = [Yhat_wavelet ; Yhat];
+    end
 end
 
+
+assert(all(Yhat_sift(:,1) == Yhat_gabor(:,1)));
+classification_report(Yhat_sift(:,1), ...
+                      [Yhat_sift(:,2:end) Yhat_gabor(:,2:end)], ...
+                      {'SIFT+avg', 'SIFT+max', 'SIFT+pnorm', 'SIFT+fun', 'SIFT+sos', ...
+                       'Gabor+avg', 'Gabor+max', 'Gabor+pnorm', 'Gabor+fun', 'Gabor+sos'});
 
 diary off;
