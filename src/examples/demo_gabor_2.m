@@ -39,31 +39,55 @@ size(coeff)
 
 %% whole image pooling
 
+% maxfun pooling
+%
 % Note: since there is a modulus built into maxfun, this pooling is
 % implicitly working on the magnitude of the Gabor features!
-min_cardinality = 11;
+min_width = 11;
 fprintf('[%s]: pooling...please wait a few moments...\n', mfilename);
 tic
-[pooled, nfo] = spatial_pool(coeff, 'maxfun', min_cardinality);
+[maxfun_pool, nfo] = spatial_pool(coeff, 'maxfun', min_width);
 toc
+
+% other pooling (of the modulus)
+coeff_2d = reshape(coeff, size(coeff,1)*size(coeff,2), size(coeff,3));
+avg_pool = mean(abs(coeff_2d), 1);
+max_pool = max(abs(coeff_2d), [], 1);
 
 
 %% visualization
 
+figure; imagesc(f); colormap('gray'); title('(resized) input image');
+
 figure; 
-stem(pooled);
-title(sprintf('pooled gabor features (l2 norm=%0.2e)', norm(pooled,2)));
+plot(1:numel(maxfun_pool), maxfun_pool, 'o', ...
+     1:numel(avg_pool), avg_pool, '-', ...
+     1:numel(max_pool), max_pool, '-');
+title('pooled modulus of Gabor features');
+legend('maxfun', 'avg', 'max');
 xlabel('feature dimension');
 ylabel('pooled value');
 
-figure; imagesc(f); colormap('gray'); title('raw image');
+
+figure; 
+plot(1:length(nfo.w), nfo.w, 'o-');
+title(sprintf('size of support selected by maxpool (minimum is %d)', min_width));
+xlabel('feature dimension');
+ylabel('pooling window width selected');
+
 
 % view a few poolings
 for ii = [1:5 10 20 30 50 100 120]
+    Xi = abs(coeff(:,:,ii));
+ 
+    [~,idx] = max(Xi(:));
+    [r_max,c_max] = ind2sub(size(Xi), idx);
+    
     figure;
-    imagesc(abs(coeff(:,:,ii)));  colorbar; %colormap('gray');
+    imagesc(Xi);  colorbar; %colormap('gray');
     title(sprintf('feature dimension %d (of %d)', ii, size(coeff,3)));
     hold on;
+    % Visualize the maxpool region.
     % Note: row/col specify the upper left corner
     row = nfo.row(ii);  % upper left corner
     col = nfo.col(ii);  %  "    "
@@ -72,5 +96,8 @@ for ii = [1:5 10 20 30 50 100 120]
     line( [col  col+w], [row+w row+w], 'color', 'r');
     line( [col  col], [row row+w], 'color', 'r');
     line( [col+w  col+w], [row row+w], 'color', 'r');
+    
+    % also show the maximum value
+    plot(c_max, r_max, 'rd');
     hold off;
 end
