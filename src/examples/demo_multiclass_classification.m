@@ -45,7 +45,7 @@ switch lower(p_.experiment)
     p_.nTrain = 30;       % see section 2.3 in [1] and also [3]
     p_.nTest = 30;        % see [3]
    
-    % TEMP: use only classes with >= 100 examples
+    % (optional): use only classes with >= 100 examples
     p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
       
   case {'kth_tips'}
@@ -106,7 +106,11 @@ downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 run_sift = @(I) sift_macrofeatures(single(I), 'step', p_.downsample, 'sz', p_.sift.size, 'subsamp', 0, 'macrosl', 0);
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
-run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
+%run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
+% mjp: !!! WARNING - trying complex->real !!!
+% TODO: try real() or imag() instead of abs() ...
+%run_gabor = @(I) single(abs(downsample(Gabor_transform(I, G), p_.downsample)));
+run_gabor = @(I) single(imag(downsample(Gabor_transform(I, G), p_.downsample)));
 
 run_wavelet = @(I) downsample(wavelet_feature(I, p_.wavelet.J), p_.downsample);
 
