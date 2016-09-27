@@ -1,4 +1,20 @@
 % DEMO_GABOR_2  A quick demo of Gabor features together with maxfun pooling.
+%
+%  The maxfun pooling (pooling inspired by the maximal function) hones
+%  in on regions of signals where values of large magnitude are
+%  concentrated.  It is this spatial localization property that
+%  distinguishes maxfun pooling from, say, taking the whole region
+%  average of the modulus of a feature dimension/image.
+%
+%  Taking the max of the modulus of a feature dimension is similar
+%  except that its support is a single pixel.  
+%
+%  It is very unlikely that maxfun will use a pooling region whose
+%  cardinality is much larger than the minimum.  Special cases might
+%  include an annulus or other structures where there is a "ring" of
+%  relatively large values whose dimension is greater than the minimum
+%  cardinality of maxpool.
+
 
 %% Feature generation
 
@@ -38,7 +54,7 @@ figure;
 stem(pooled);
 title(sprintf('pooled gabor features (l2 norm=%0.2e)', norm(pooled,2)));
 xlabel('feature dimension');
-ylabel('pool value');
+ylabel('pooled value');
 
 figure; imagesc(f); colormap('gray'); title('raw image');
 
