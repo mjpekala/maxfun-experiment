@@ -10,7 +10,7 @@ function Z = all_windowed_sums(X, wVals)
 %
 %      Z    := a tensor where Z(:,:,ii) is the result of convolving
 %              an averaging filter of width(ii) over the entire
-%              image X.  Each Z(:,:,ii) contains on the valid 
+%              image X.  Each Z(:,:,ii) contains the valid 
 %              part of this convolution; the remainder is zero so
 %              that all "slices" have the same size.
 %
