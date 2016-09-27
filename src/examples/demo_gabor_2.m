@@ -14,6 +14,10 @@
 %  include an annulus or other structures where there is a "ring" of
 %  relatively large values whose dimension is greater than the minimum
 %  cardinality of maxpool.
+%    - However, this raises an important point.  If we have some prior 
+%      knowledge regarding the spatial extent of a "relevant" feature, 
+%      it may make sense to incorporate this prior by setting the minimum
+%      maxpool measure accordingly...
 
 
 %% Feature generation
