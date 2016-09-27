@@ -6,7 +6,8 @@ title('input image');
 
 % choose parameter
 M = size(f,1);
-b = M/8;
+%b = M/8;
+b = M/10;
 sigma = b;
 
 % construct Gaussian Gabor frame
@@ -19,10 +20,27 @@ tic;
 coeff = Gabor_transform(f,G);
 toc;
 
-% mjp - added.
+% mjp - added some checks and a visualization.
 assert(size(f,1) == size(coeff,1));
 assert(size(f,2) == size(coeff,2));
+
+c_min_max = [min(coeff(:))  max(coeff(:))];
 for ii = [1 2 10 50 size(coeff,3)]
-    plot_help(coeff(:,:,ii));
-    title(sprintf('Gabor feature dimension %d', ii));
+    figure('Position', [100 100 1200 400]); 
+    ha = tight_subplot(1, 3, [.025 .025], [.01 .05], .01);
+
+    axes(ha(1)); 
+    imagesc(abs(coeff(:,:,ii)));  set(gca, 'XTick', [], 'YTick', []);
+    colormap gray;  colorbar();
+    title(sprintf('abs(); dim %d (of %d)', ii, size(coeff,3)));
+
+    axes(ha(2)); 
+    imagesc(real(coeff(:,:,ii))); set(gca, 'XTick', [], 'YTick', []);
+    colormap gray;  colorbar();
+    title(sprintf('real(), dim %d (of %d)', ii, size(coeff,3)));
+
+    axes(ha(3)); 
+    imagesc(imag(coeff(:,:,ii))); set(gca, 'XTick', [], 'YTick', []);
+    colormap gray;  colorbar();
+    title(sprintf('imag(),  dim %d (of %d)', ii, size(coeff,3)));
 end
