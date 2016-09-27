@@ -7,7 +7,7 @@ title('input image');
 % choose parameter
 M = size(f,1);
 %b = M/8;
-b = M/10;
+b = M/10;  % mjp: generates 121 \approx 128 feature dimensions (like SIFT)
 sigma = b;
 
 % construct Gaussian Gabor frame
