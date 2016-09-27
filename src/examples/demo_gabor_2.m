@@ -43,16 +43,18 @@ ylabel('pool value');
 figure; imagesc(f); colormap('gray'); title('raw image');
 
 % view a few poolings
-for ii = [1:5 10 20 30]
+for ii = [1:5 10 20 30 50 100 120]
     figure;
-    imagesc(abs(coeff(:,:,ii)));  colormap('gray');
+    imagesc(abs(coeff(:,:,ii)));  colorbar; %colormap('gray');
     title(sprintf('feature dimension %d (of %d)', ii, size(coeff,3)));
     hold on;
-    scatter(nfo.col(ii), nfo.row(ii), 'ro');
-    w2 = nfo.w(ii)/2;
-    line( [nfo.col(ii)-w2  nfo.col(ii)+w2], [nfo.row(ii)+w2 nfo.row(ii)+w2], 'color', 'g');
-    line( [nfo.col(ii)-w2  nfo.col(ii)+w2], [nfo.row(ii)-w2 nfo.row(ii)-w2], 'color', 'g');
-    line( [nfo.col(ii)-w2  nfo.col(ii)-w2], [nfo.row(ii)-w2 nfo.row(ii)+w2], 'color', 'g');
-    line( [nfo.col(ii)+w2  nfo.col(ii)+w2], [nfo.row(ii)-w2 nfo.row(ii)+w2], 'color', 'g');
+    % Note: row/col specify the upper left corner
+    row = nfo.row(ii);  % upper left corner
+    col = nfo.col(ii);  %  "    "
+    w = nfo.w(ii);
+    line( [col  col+w], [row row], 'color', 'r');
+    line( [col  col+w], [row+w row+w], 'color', 'r');
+    line( [col  col], [row row+w], 'color', 'r');
+    line( [col+w  col+w], [row row+w], 'color', 'r');
     hold off;
 end
