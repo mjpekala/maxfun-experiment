@@ -88,6 +88,7 @@ switch(lower(poolType))
 
     
   case {'maxfun', 'fun'}
+    % pooling using the (uncentered) maximal function-inspired pooling
     X = reshape_noncommutative(X);  % (h, w, #_regions)
     X = abs(X);                     % def. MAXFUN
     wMin = p(1);
@@ -105,7 +106,8 @@ switch(lower(poolType))
         c0 = zeros(size(X,3),1);     % column coordinate (upper left)
         r0 = zeros(size(X,3),1);     % row coordinate (upper left)
         w0 = zeros(size(X,3),1);     % the maxfun window width selected
-        
+       
+        % process each 2d image separately
         for ii = 1:size(X,3)
             Z = all_windowed_sums(X(:,:,ii), wVals);
             [y(ii), idx] = max(Z(:));
