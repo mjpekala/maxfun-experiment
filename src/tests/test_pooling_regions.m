@@ -40,5 +40,11 @@ for ii = 1:size(Y,1)
 end
 
 
+% note to self: can stack regions along the feature dimension
+Tmp = cat(3, Y{:});
+assert(all(all(Tmp(:,:,1) == Y{1,1}(:,:,1))));
+assert(all(all(Tmp(:,:,end) == Y{end,end}(:,:,end))));
+
+
 %%
 fprintf('[%s]: all tests passed!\n', mfilename);
