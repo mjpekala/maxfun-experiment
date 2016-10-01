@@ -2,9 +2,8 @@
 
 % mjp, april 2016
 
-% This function is pretty simple, so there's not that much that is
-% likely to go wrong.  Hence, these are just some basic sanity checks.
 
+%% first, some simple sanity checks
 X = rand(300,300);
 
 R = pooling_regions(X, 7);
@@ -16,5 +15,30 @@ R11 = R{1,1};
 X11 = X(1:7, 1:7);
 assert(all(R11(:) == X11(:)));
 
-%------------------------------
+
+%% ensure this plays well with the pooling algorithms
+
+X = zeros(300,300,5);   % 5 feature maps
+for ii = 1:size(X,3), X(:,:,ii) = ii; end
+
+Y = pooling_regions(X, 100);
+
+assert(size(Y,1) == 3);
+assert(size(Y,2) == 3);
+assert(size(Y,3) == 1);
+
+for ii = 1:size(Y,1)
+    for jj = 1:size(Y,2)
+        Yij = Y{ii,jj};
+        assert(size(Yij,1) == 100);
+        assert(size(Yij,2) == 100);
+        assert(size(Yij,3) == 5);
+        for kk = 1:size(Yij,3)
+            assert(all(all(Yij(:,:,kk) == kk)));
+        end
+    end
+end
+
+
+%%
 fprintf('[%s]: all tests passed!\n', mfilename);
