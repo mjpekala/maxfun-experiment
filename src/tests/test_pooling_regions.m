@@ -3,7 +3,7 @@
 % mjp, april 2016
 
 
-%% first, some simple sanity checks
+%% test matrix inputs
 X = rand(300,300);
 
 R = pooling_regions(X, 7);
@@ -16,7 +16,7 @@ X11 = X(1:7, 1:7);
 assert(all(R11(:) == X11(:)));
 
 
-%% ensure this plays well with the pooling algorithms
+%% test tensor inputs
 
 X = zeros(300,300,5);   % 5 feature maps
 for ii = 1:size(X,3), X(:,:,ii) = ii; end
