@@ -1,4 +1,4 @@
-%  DEMO_MULTICLASS_CLASSIFICATION  
+%  DEMO_MULTICLASS_WHOLE_IMAGE  
 %
 %   Compare the impact of different features and pooling strategies on
 %   one-vs-all image classification problems.  Originally this code
