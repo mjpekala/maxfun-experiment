@@ -1,5 +1,5 @@
 function [Y, nfo] = spatial_pool(X, poolType, p)
-% SPATIAL_POOL  Implements spatial pooling strategies 
+% SPATIAL_POOL  Whole image pooling
 %
 %      Y = spatial_pool(X, poolType, [p])
 %
