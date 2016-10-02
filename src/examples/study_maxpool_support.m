@@ -31,7 +31,7 @@ for ii = 1:size(X,3)
     Z_vals(:,ii) = zi;
 end
 
-delta_w = diff(Z_vals);
+delta_w = diff(Z_vals);  % pos values = locations where support > min support
 pct_monotonic = sum(delta_w(:) <= 0) / numel(delta_w);
 
 figure;
