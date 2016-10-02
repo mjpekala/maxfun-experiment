@@ -11,6 +11,7 @@ function Xp = windowed_pooling(X, poolDim, f_pool_wi)
 
 % mjp, oct 2016
 
+error('dont use this right now; use the toTensor argument to pooling_regions() instead');
 win_pool_2d = @(I) cell2mat(cellfun(f_pool_wi, pooling_regions(I, poolDim), ...
                                     'UniformOutput', 0));
 
