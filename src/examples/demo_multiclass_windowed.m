@@ -3,7 +3,6 @@
 %   A variant of demo_multiclass_whole_image that partitions the
 %   images into multiple "windows" prior to pooling.
 %
-%   This is a separate script 
 
 
 % mjp, Oct. 2016
@@ -183,14 +182,20 @@ for splitId = 1:p_.nSplits
         %------------------------------
         poolfuncs = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, maxfun_pooling};
         for ii = 1:length(poolfuncs)
-            fprintf('[%s]: evaluating pooling strategy %d (of %d)\n', mfilename, ii, length(poolfuncs));
+            fprintf('[%s]: evaluating strategy (%d,%d)  (of %d, %d)\n', ...
+                    mfilename, algoId, ii, numel(feature_algos), length(poolfuncs));
+            
             tic
             Xtrain = poolfuncs{ii}(feats.train.X);
             Xtest = poolfuncs{ii}(feats.test.X);
+            poolTime = toc;
+            
             % The transpose below is because the SVM codes want objects-as-rows.
             [yHat, metrics] = eval_svm(Xtrain', feats.train.y, Xtest', feats.test.y);
+            svmTime = toc - poolTime
             Yhat(:, ii, algoId) = yHat;
-            fprintf('[%s]: evaluation tool %0.2f (min)\n', mfilename, toc/60.);
+            fprintf('[%s]: runtime (min); pool = %0.2f, SVM = %0.2f\n', ...
+                    mfilename, poolTime/60., svmTime/60.);
         end
     end
 
