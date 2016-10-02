@@ -27,7 +27,7 @@ p_.sz = [200 200];    % Gabor feature code requires square images
 p_.window_dim = 50;
 p_.nTrain = 30;       
 p_.nTest = 30;       
-p_.downsample = 2;    % feature space downsampling; alleviates memory issues
+p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 
 % --= Gabor parameters =--
 % choose b s.t., given p_.sz, Gabor has ~128 feature dimensions
@@ -125,6 +125,8 @@ for splitId = 1:p_.nSplits
     make_dir(experimentDir{splitId});
     
     if exist(fullfile(experimentDir{splitId}, p_.fn.results))
+        fprintf('[%s]: skipping split %d (already calculated)\n', ...
+                mfilename, splitId);
         continue;  % already completed this train/test split
     end
 
@@ -151,17 +153,21 @@ for splitId = 1:p_.nSplits
         %------------------------------
         % generate features
         %------------------------------
-        % compose the feature generation function with an image partitioning function
-        f_algo = feature_algos{algoId};
-        f = @(I) pooling_regions(f_algo(I), p_.window_dim, true);
+        if p_.window_dim > 0
+            % compose the feature generation with image partitioning
+            f_algo = @(I) pooling_regions(feature_algos{algoId}(I), p_.window_dim, true);
+        else
+            % whole image pooling
+            f_algo = feature_algos{algoId};
+        end
     
         fprintf('\n\n');   
         fprintf('[%s]: generating training data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
-        feats.train.X = map_image(train.I, f);
+        feats.train.X = map_image(train.I, f_algo);
         feats.train.y = train.y;
         
         fprintf('[%s]: generating test data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
-        feats.test.X = map_image(test.I, f);
+        feats.test.X = map_image(test.I, f_algo);
         feats.test.y = test.y;
 
 
@@ -182,6 +188,12 @@ for splitId = 1:p_.nSplits
         else
             maxfun_pooling = @(X) spatial_pool(X, 'fun', 15);
         end
+      
+        if 1
+            %study_maxpool_support(feats.train.X(:,:,[1 10 100],:));
+            study_maxpool_support(feats.train.X);
+            drawnow;
+        end
        
         %------------------------------
         % evaluate each candidate pooling function
@@ -196,7 +208,7 @@ for splitId = 1:p_.nSplits
             Xtest = poolfuncs{ii}(feats.test.X);
             poolTime = toc(pStartTime);
             
-            % The transpose below is because the SVM codes want objects-as-rows.
+            % transpose because the SVM codes want objects-as-rows.
             [yHat, metrics] = eval_svm(Xtrain', feats.train.y, Xtest', feats.test.y);
             svmTime = toc(pStartTime) - poolTime;
             Yhat(:, ii, algoId) = yHat;
@@ -209,10 +221,13 @@ for splitId = 1:p_.nSplits
     end
 
     % save data to file
-    fn = fullfile(experimentDir, p_.fn.results);
+    fn = fullfile(experimentDir{splitId}, p_.fn.results);
     save(fn, 'train', 'test', 'p_', 'Yhat', '-v7.3');
 
     clear feats;
+ 
+    fprintf('[%s]: finished split %d; net time %0.2f (min)\n', ...
+            mfilename, splitId, toc(overallTimer)/60.);
 end
 
 return % TEMP
