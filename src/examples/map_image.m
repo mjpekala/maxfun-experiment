@@ -2,7 +2,7 @@ function Y = map_image(T, f, verbose)
 % MAP  Applies function to a set of images.
 %
 %    T : A tensor of images with dimensions (m x n x z) which
-%        represents a stack of (m x n) images (n in total).
+%        represents a stack of (m x n) images.
 %
 %    f : A function that accepts a single input argument, an (m x n)
 %        image.
