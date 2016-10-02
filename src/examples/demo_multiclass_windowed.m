@@ -27,7 +27,7 @@ p_.sz = [200 200];    % Gabor feature code requires square images
 p_.window_dim = 50;
 p_.nTrain = 30;       
 p_.nTest = 30;       
-p_.downsample = 1;    % feature space downsampling; 
+p_.downsample = 2;    % feature space downsampling; alleviates memory issues
 
 % --= Gabor parameters =--
 % choose b s.t., given p_.sz, Gabor has ~128 feature dimensions
@@ -142,17 +142,20 @@ for splitId = 1:p_.nSplits
     test.files = data.files(isTest);
     test.idx = find(isTest);
 
+
     
     %% run the experiment with each feature type
-    Yhat = zeros(numel(test.y), 5, numel(feature_algos));  % stores classification results
-    for algoId = 1:numel(feature_algos), 
+    Yhat = zeros(numel(test.y), 5, numel(feature_algos));  
+
+    for algoId = 1:numel(feature_algos)
         %------------------------------
         % generate features
         %------------------------------
         % compose the feature generation function with an image partitioning function
         f_algo = feature_algos{algoId};
         f = @(I) pooling_regions(f_algo(I), p_.window_dim, true);
-       
+    
+        fprintf('\n\n');   
         fprintf('[%s]: generating training data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
         feats.train.X = map_image(train.I, f);
         feats.train.y = train.y;
@@ -160,8 +163,11 @@ for splitId = 1:p_.nSplits
         fprintf('[%s]: generating test data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
         feats.test.X = map_image(test.I, f);
         feats.test.y = test.y;
+
+
+        fprintf('[%s]: train size: %s\n', mfilename, num2str(size(feats.train.X)));
+        fprintf('[%s]: test size:  %s\n', mfilename, num2str(size(feats.test.X)));
  
-        
         %------------------------------
         % select hyper-parameters
         %------------------------------
@@ -185,17 +191,20 @@ for splitId = 1:p_.nSplits
             fprintf('[%s]: evaluating strategy (%d,%d)  (of %d, %d)\n', ...
                     mfilename, algoId, ii, numel(feature_algos), length(poolfuncs));
             
-            tic
+            pStartTime = tic;
             Xtrain = poolfuncs{ii}(feats.train.X);
             Xtest = poolfuncs{ii}(feats.test.X);
-            poolTime = toc;
+            poolTime = toc(pStartTime);
             
             % The transpose below is because the SVM codes want objects-as-rows.
             [yHat, metrics] = eval_svm(Xtrain', feats.train.y, Xtest', feats.test.y);
-            svmTime = toc - poolTime
+            svmTime = toc(pStartTime) - poolTime;
             Yhat(:, ii, algoId) = yHat;
-            fprintf('[%s]: runtime (min); pool = %0.2f, SVM = %0.2f\n', ...
-                    mfilename, poolTime/60., svmTime/60.);
+            fprintf('    mean acc: %0.2f\n', mean(metrics.acc));
+            fprintf('    runtime (sec); pool = %0.2f, SVM = %0.2f\n', ...
+                    poolTime, svmTime);
+
+            clear Xtrain Xtest;
         end
     end
 
