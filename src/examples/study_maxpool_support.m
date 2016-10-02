@@ -24,7 +24,9 @@ X = reshape_noncommutative(X);
 % Process each example/feature separately
 Z_vals = zeros(w_max, size(X,3));
 for ii = 1:size(X,3)
-    Z = all_windowed_sums(X(:,:,ii), 1:w_max);
+    Xi = X(:,:,ii);  
+    Xi = Xi / sum(Xi(:));  % normalize
+    Z = all_windowed_sums(Xi, 1:w_max);
     zi = max(max(Z, [], 1), [], 2);
     Z_vals(:,ii) = zi;
 end
