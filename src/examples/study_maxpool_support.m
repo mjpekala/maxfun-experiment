@@ -31,12 +31,19 @@ for ii = 1:size(X,3)
     Z_vals(:,ii) = zi;
 end
 
-delta_w = diff(Z_vals);  % pos values = locations where support > min support
-pct_monotonic = sum(delta_w(:) <= 0) / numel(delta_w);
+C = ones(size(Z_vals));
+for ii = 1:size(Z_vals,1)-1
+    largest_sum = max(Z_vals(ii:end,:), [], 1);
+    C(ii,:) = Z_vals(ii,:) >= largest_sum;
+end
+
+pct_use_min_supp = sum(C,2) / size(C,2);
 
 figure;
-boxplot(diff(Z_vals)')
-title(sprintf('pct monotonic=%0.2f', pct_monotonic));
-xlabel('pool window width');
-ylabel('delta windowed sum (normalized)');
+plot(pct_use_min_supp, 'o-');
+grid on;
+xlabel('min support dimension');
+ylabel('freq. that min support is selected');
+title('maxfun support analysis');
+
 
