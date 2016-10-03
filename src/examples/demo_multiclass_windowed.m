@@ -12,7 +12,7 @@
 
 p_.seed = 9999;
 %p_.nSplits = 10;  
-p_.nSplits = 5;    % TEMP
+p_.nSplits = 5;
 
 %p_.classesToUse = 1:101;
 p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
@@ -182,7 +182,7 @@ for splitId = 1:p_.nSplits
         % select hyper-parameters
         %------------------------------
         % maxfun requires selecting a hyper-parameter
-        if 0
+        if 1
             fprintf('[%s]: selecting hyper-parameter for MAXFUN pooling...\n', mfilename);
             tic
             maxfun_pooling_k = @(X, k) spatial_pool(X, 'fun', k);
@@ -190,7 +190,7 @@ for splitId = 1:p_.nSplits
             maxfun_pooling = @(X) spatial_pool(X, 'fun', pMF);
             toc
         else
-            maxfun_pooling = @(X) spatial_pool(X, 'fun', 15);
+            maxfun_pooling = @(X) spatial_pool(X, 'fun', 15); % TEMP
         end
      
         %------------------------------
