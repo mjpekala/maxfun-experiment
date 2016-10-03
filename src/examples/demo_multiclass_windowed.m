@@ -11,8 +11,7 @@
 %% Experiment Parameters 
 
 p_.seed = 9999;
-%p_.nSplits = 10;  
-p_.nSplits = 1; % TEMP  
+p_.nSplits = 10;  
 
 %p_.classesToUse = 1:101;
 p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
@@ -120,6 +119,7 @@ end
 
 
 %% Run experiments
+experimentDir = {};
 
 for splitId = 1:p_.nSplits
     experimentDir{splitId} = fullfile(p_.rootDir, sprintf('split_%0.2d', splitId));
@@ -245,43 +245,30 @@ for splitId = 1:p_.nSplits
     
 end
 
-return % TEMP
-
 
 %% Post-processing / analysis
 %
 % This is simply aggregating results across the various train/test splits.
 
-Yhat_sift = [];
-Yhat_gabor = [];
+Acc_sift = [];
+Acc_gabor = [];
 for ii = 1:length(experimentDir), eDir = experimentDir{ii};
-    % classification results for SIFT features
-    fn = fullfile(eDir, 'svm_SIFT.mat');
-    if exist(fn), 
-        load(fn);
-        Yhat_sift = [Yhat_sift ; Yhat];
-    end
+    fn = fullfile(experimentDir{splitId}, p_.fn.results);
+    load(fn);
+  
+    Acc_1 = bsxfun(@eq, Yhat(:,:,1), test.y(:));
+    Acc_2 = bsxfun(@eq, Yhat(:,:,2), test.y(:));
     
-    % classification results for Gabor features
-    fn = fullfile(eDir, 'svm_Gabor.mat');
-    if exist(fn), 
-        load(fn);
-        Yhat_gabor = [Yhat_gabor ; Yhat];
-    end
-    
-    % classification results for wavelet features
-    fn = fullfile(eDir, 'svm_wavelet.mat');
-    if exist(fn), 
-        load(fn);
-        Yhat_wavelet = [Yhat_wavelet ; Yhat];
+    if ii == 1
+        Acc_sift = Acc_1;
+        Acc_gabor = Acc_2;
+    else
+        Acc_sift = cat(3, Acc_sift, Acc_1);
+        Acc_gabor = cat(3, Acc_gabor, Acc_2);
     end
 end
 
 
-assert(all(Yhat_sift(:,1) == Yhat_gabor(:,1)));
-classification_report(Yhat_sift(:,1), ...
-                      [Yhat_sift(:,2:end) Yhat_gabor(:,2:end)], ...
-                      {'SIFT+avg', 'SIFT+max', 'SIFT+pnorm', 'SIFT+fun', 'SIFT+sos', ...
-                       'Gabor+avg', 'Gabor+max', 'Gabor+pnorm', 'Gabor+fun', 'Gabor+sos'});
+% TODO
 
 diary off;
