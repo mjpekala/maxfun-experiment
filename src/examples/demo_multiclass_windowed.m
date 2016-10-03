@@ -22,8 +22,8 @@ p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
 %       Make sure to change as appropriate.
 p_.imageDir = '../datasets/101_ObjectCategories';
 p_.sz = [200 200];    % Gabor feature code requires square images
-%p_.window_dim = 20;   % set to 0 for whole image pooling
-p_.window_dim = 0;   % set to 0 for whole image pooling
+p_.window_dim = 20;   % set to 0 for whole image pooling
+%p_.window_dim = 0;   % set to 0 for whole image pooling
 p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.nTrain = 30;       
 p_.nTest = 30;       
@@ -148,7 +148,8 @@ for splitId = 1:p_.nSplits
 
     
     %% run the experiment with each feature type
-    Yhat = zeros(numel(test.y), 5, numel(feature_algos));  
+    n_pool_strat = 5;
+    Yhat = zeros(numel(test.y), n_pool_strat, numel(feature_algos));  
 
     for algoId = 1:numel(feature_algos)
         %------------------------------
@@ -250,22 +251,55 @@ end
 %
 % This is simply aggregating results across the various train/test splits.
 
-Acc_sift = [];
-Acc_gabor = [];
-for ii = 1:length(experimentDir), eDir = experimentDir{ii};
-    fn = fullfile(experimentDir{splitId}, p_.fn.results);
+for kk = 1:length(experimentDir)
+    % load results from this split
+    eDir = experimentDir{kk};
+    fn = fullfile(experimentDir{kk}, p_.fn.results);
     load(fn);
   
-    Acc_1 = bsxfun(@eq, Yhat(:,:,1), test.y(:));
-    Acc_2 = bsxfun(@eq, Yhat(:,:,2), test.y(:));
-    
-    if ii == 1
-        Acc_sift = Acc_1;
-        Acc_gabor = Acc_2;
-    else
-        Acc_sift = cat(3, Acc_sift, Acc_1);
-        Acc_gabor = cat(3, Acc_gabor, Acc_2);
+    if kk == 1
+        % Construct matrices to hold aggregate results
+        yAll = sort(unique(test.y));
+        n_classes = length(unique(yAll));
+        n_pool_strat = size(Yhat,2);
+        n_feat_types = size(Yhat,3);
+        Acc = zeros(n_classes, n_pool_strat, p_.nSplits, n_feat_types);
     end
+
+    % add results for this particular split
+    for jj = 1:n_pool_strat
+        for ll = 1:n_feat_types
+            for ii = 1:length(yAll)
+                idx = (test.y == yAll(ii));
+                is_correct = Yhat(idx, jj, ll) == test.y(idx);
+                Acc(ii,jj,kk,ll) = sum(is_correct) / length(is_correct);
+            end
+        end
+    end
+end
+
+
+% display summary statistics
+for ll = 1:size(Acc,4)
+    Acc_feat = Acc(:,:,:,ll);
+    Acc_mean = mean(Acc_feat,3);
+    Acc_std = std(Acc_feat,0,3);
+ 
+    header = '       | ';
+    for jj = 1:size(Acc_mean,2)
+        header = [header, sprintf(' pool strat %02d  | ', jj)];
+    end
+   
+    fprintf('%s\n', header);
+    for ii = 1:size(Acc_mean,1)
+        fprintf('y=%3d  |', yAll(ii));
+        for jj = 1:size(Acc_mean,2)
+            fprintf(' %05.2f +/- %05.2f |', 100*Acc_mean(ii,jj), 100*Acc_std(ii,jj));
+        end
+        fprintf('\n');
+    end
+    
+    % also show a marginal
 end
 
 
