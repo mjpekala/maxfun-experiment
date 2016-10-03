@@ -11,7 +11,8 @@
 %% Experiment Parameters 
 
 p_.seed = 9999;
-p_.nSplits = 10;  
+%p_.nSplits = 10;  
+p_.nSplits = 5;    % TEMP
 
 %p_.classesToUse = 1:101;
 p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
@@ -22,7 +23,7 @@ p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
 %       Make sure to change as appropriate.
 p_.imageDir = '../datasets/101_ObjectCategories';
 p_.sz = [200 200];    % Gabor feature code requires square images
-p_.window_dim = 20;   % set to 0 for whole image pooling
+p_.window_dim = 25;   % set to 0 for whole image pooling
 %p_.window_dim = 0;   % set to 0 for whole image pooling
 p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.nTrain = 30;       
@@ -80,6 +81,7 @@ run_sift = @(I) sift_macrofeatures(single(I), ...
 run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
 
 feature_algos = {run_sift, run_gabor};
+feature_type_names = {'SIFT', 'Gabor'};
 
 % pooling functions that do not require hyper-parameter selection can
 % be defined here.
@@ -164,11 +166,11 @@ for splitId = 1:p_.nSplits
         end
     
         fprintf('\n\n');   
-        fprintf('[%s]: generating training data for feature type %d (of %d)\n', mfilename, algoId, numel(feature_algos));
+        fprintf('[%s]: generating training data for %s\n', mfilename, feature_type_names{algoId});
         feats.train.X = map_image(train.I, f_algo);
         feats.train.y = train.y;
         
-        fprintf('[%s]: generating test data for feature type %d (of %d)\n', mfilename, algoId, numel(feature_algos));
+        fprintf('[%s]: generating test data for %s\n', mfilename, feature_type_names{algoId});
         feats.test.X = map_image(test.I, f_algo);
         feats.test.y = test.y;
 
