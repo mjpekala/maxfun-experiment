@@ -16,7 +16,6 @@ p_.nSplits = 1; % TEMP
 
 %p_.classesToUse = 1:101;
 p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
-p_.experiment = sprintf('caltech-%d', numel(p_.classesToUse));
 
 
 % --= Dataset Parameters =--
@@ -24,10 +23,11 @@ p_.experiment = sprintf('caltech-%d', numel(p_.classesToUse));
 %       Make sure to change as appropriate.
 p_.imageDir = '../datasets/101_ObjectCategories';
 p_.sz = [200 200];    % Gabor feature code requires square images
-p_.window_dim = 50;
+%p_.window_dim = 20;   % set to 0 for whole image pooling
+p_.window_dim = 0;   % set to 0 for whole image pooling
+p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.nTrain = 30;       
 p_.nTest = 30;       
-p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 
 % --= Gabor parameters =--
 % choose b s.t., given p_.sz, Gabor has ~128 feature dimensions
@@ -42,6 +42,7 @@ p_.sift.size = 4;             % see dl_vsift
 
 
 % --= output path stuff =--
+p_.experiment = sprintf('caltech-%d-w%d', numel(p_.classesToUse), p_.window_dim);
 p_.rootDir = fullfile('Results_dmw', [p_.experiment '_seed' num2str(p_.seed)]);
 
 p_.fn.raw = 'raw_data.mat';
@@ -188,11 +189,18 @@ for splitId = 1:p_.nSplits
         else
             maxfun_pooling = @(X) spatial_pool(X, 'fun', 15);
         end
-      
-        if 1
+     
+        %------------------------------
+        % (optional) study maxpool properties for these features
+        %------------------------------
+        if splitId == 1 && 1
             %study_maxpool_support(feats.train.X(:,:,[1 10 100],:));
             study_maxpool_support(feats.train.X);
             drawnow;
+            fn = fullfile(experimentDir{splitId}, ...
+                          sprintf('mp_study_%d.fig', algoId));
+            title(sprintf('maxfun analysis for algo %d', algoId));
+            saveas(gca, fn)
         end
        
         %------------------------------
@@ -228,6 +236,13 @@ for splitId = 1:p_.nSplits
  
     fprintf('[%s]: finished split %d; net time %0.2f (min)\n', ...
             mfilename, splitId, toc(overallTimer)/60.);
+    
+    for ii = 1:size(Yhat,3)
+        is_correct = bsxfun(@eq, Yhat(:,:,ii),  test.y(:));
+        acc = sum(is_correct,1) / size(is_correct,1);
+        fprintf('   acc. for algo. %d: %s\n', ii, num2str(100*acc));
+    end
+    
 end
 
 return % TEMP
