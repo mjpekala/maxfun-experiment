@@ -107,9 +107,7 @@ run_sift = @(I) sift_macrofeatures(single(I), 'step', p_.downsample, 'sz', p_.si
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 % mjp: !!! WARNING - trying complex->real !!!
-% TODO: try real() or imag() instead of abs() ...
 run_gabor = @(I) single(abs(downsample(Gabor_transform(I, G), p_.downsample)));
-%run_gabor = @(I) single(imag(downsample(Gabor_transform(I, G), p_.downsample)));
 
 run_wavelet = @(I) downsample(wavelet_feature(I, p_.wavelet.J), p_.downsample);
 
