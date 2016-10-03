@@ -9,8 +9,8 @@ function rv = mean_variance_ratio(V1, V2)
 %  RETURNS
 %    rv.mu1     (n x 1) vector of sample means from V1
 %    rv.mu2     (n x 1) vector of sample means from V2
-%    rv.sigma1  (n x 1) vector of sample stanard deviations (V1)
-%    rv.sigma2  (n x 1) vector of sample stanard deviations (V2)
+%    rv.sigma1  (n x 1) vector of sample standard deviations (V1)
+%    rv.sigma2  (n x 1) vector of sample standard deviations (V2)
 %    rv.phi     (n x 1) vector of absolute difference in means
 %    rv.psi     (n x 1) vector of mean variance ratios
 %
