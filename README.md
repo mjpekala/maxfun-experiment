@@ -11,5 +11,4 @@ An empirical study comparing MAXFUN (citation pending) to other feature pooling 
 4.  Run demos/examples (see the "examples" subdirectory).  Of interest might be
     *  **demo_gabor.m**  A quick demonstration of how to use the Gabor transform codes.
     *  **demo_sift_and_pooling.m**  Provides examples of how to run SIFT on images and pool the resulting feature maps (in the context of a synthetic classification problem).
-	*  **demo_multiclass_classification.m**  An example of using multiple transforms and pooling strategies to classify images.
 
