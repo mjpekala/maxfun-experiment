@@ -114,16 +114,27 @@ for ii = 1:nTrials
 end
 toc
 
+% monte-carlo results
 avgpool = mean_variance_ratio(X1, X2);
 maxpool = mean_variance_ratio(Y1, Y2);
 sospool = mean_variance_ratio(Z1, Z2);
 
 xv = 1:m_.nMax;
 
+% theoretical results
+theory.phi = abs((1 - m_.alpha1).^xv - (1 - m_.alpha2).^xv);
+theory.max.sigma_1 = sqrt((1 - (1 - m_.alpha1).^xv) .* (1 - m_.alpha1).^xv);
+theory.max.sigma_2 = sqrt((1 - (1 - m_.alpha2).^xv) .* (1 - m_.alpha2).^xv);
+theory.max.psi = theory.phi ./ (theory.max.sigma_1 + theory.max.sigma_2);
+
+
+% plots
+% Note: you can use either the theoretical or monte-carlo 
+%       curves as you see fit.
 figure;
 plot(xv, maxpool.phi, 'r', ...
      xv, maxpool.sigma1 + maxpool.sigma2, 'b--', ...
-     xv, maxpool.psi, 'g:', ...
+     xv, theory.max.psi, 'g:', ...
      xv, avgpool.psi, 'm-.', ...
      'LineWidth', 2);
 xlabel('pool cardinality');
@@ -134,7 +145,7 @@ saveas(gcf, ['Fig1_MC_' m_.subfig '_1.eps'], 'epsc');
 
 
 figure;
-plot(xv, maxpool.psi, 'g:', ...
+plot(xv, theory.max.psi, 'g:', ...
      xv, avgpool.psi, 'm-.', ...
      xv, sospool.psi(:,:,2), 'b', ...
      xv, sospool.psi(:,:,3), 'c', ...
@@ -146,4 +157,5 @@ legend('\psi_{max}', '\psi_{avg}', ...
        ['\psi_{sos} (' num2str(m_.mfFloor(3)) ')'], ...
        ['\psi_{sos} (' num2str(m_.mfFloor(4)) ')'], ...
        'Location', 'NorthWest');
+title(sprintf('reproduction of subplot %s + SOS', m_.subfig));
 saveas(gcf, ['Fig1_MC_' m_.subfig '_2.eps'], 'epsc');
