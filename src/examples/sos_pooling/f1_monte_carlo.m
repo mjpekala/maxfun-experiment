@@ -2,8 +2,13 @@
 % An attempt to reproduce (and possibly extend) the result shown in
 % figure 1 of [1].  Instead of using theoretical values, we are
 % using monte carlo approximations.  Once we obtain a nicer closed
-% form representation for the maxfun pooling this script can be
+% form representation for the SOS pooling this script can be
 % replaced.
+%
+% The SOS pooling was orginally conceived as a way to bound
+% the performance of MAXFUN pooling (which is what we ultimately
+% care about).  It could, of course, also be considered as
+% an algorithm in its own right.
 %
 % REFERENCES
 %  [1] Boureau et al. "A Theoretical Analysis of Feature Pooling in
@@ -50,7 +55,7 @@ X2 = zeros(size(X1));
 Y1 = zeros(size(X1));
 Y2 = zeros(size(Y1));
 
-% Z_i store monte carlo samples for maxfun pooling
+% Z_i store monte carlo samples for SOS pooling
 Z1 = zeros([size(Y1) numel(m_.mfFloor)]);
 Z2 = zeros([size(Y1) numel(m_.mfFloor)]);
 
@@ -69,7 +74,7 @@ for ii = 1:nTrials
     Y1(:,ii) = cummax(coins1);
     Y2(:,ii) = cummax(coins2);
  
-    % maxfun pooling
+    % SOS pooling
     %
     for kk = 1:numel(m_.mfFloor)
         mfFloor = m_.mfFloor(kk);
@@ -77,8 +82,8 @@ for ii = 1:nTrials
         topk2 = [];
         
         for jj = 1:m_.nMax
-            % This might be more elegantly implemented with a selection algorithm,
-            % but, since this is just a back-of-the-envelope
+            % This might be more elegantly implemented with a selection 
+            % algorithm; however, since this is just a back-of-the-envelope
             % calculation, just do what is most expedient.
             
             if jj <= mfFloor
