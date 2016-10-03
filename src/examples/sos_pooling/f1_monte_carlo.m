@@ -1,16 +1,16 @@
 %
 % An attempt to reproduce (and possibly extend) the result shown in
-% figure 1 of [1].  Instead of using theoretical values, we are
-% using monte carlo approximations.  Once we obtain a nicer closed
-% form representation for the SOS pooling this script can be
-% replaced.
+% figure 1 of [1].  
 %
-% The SOS pooling was orginally conceived as a way to bound
-% the performance of MAXFUN pooling (which is what we ultimately
-% care about).  This is why some of the variables are named 
-% with "mf" - be aware I was not working with maxfun but 
-% rather a bound for it.
+% For the average and maximum pooling, this code generates both
+% theoretical and monte-carlo curves.  The latter is a way to sanity
+% check the monte-carlo results of SOS (see below) for which we
+% do not currently have a closed form expression.
 %
+% The "sum of order statistics" (SOS) pooling was conceived as a 
+% way to bound the performance of MAXFUN pooling (which is what 
+% we ultimately care about).  This is why some of the variables are 
+% named with "mf" - be aware that this is not exactly MAXFUN.
 %
 % REFERENCES
 %  [1] Boureau et al. "A Theoretical Analysis of Feature Pooling in
@@ -121,7 +121,8 @@ sospool = mean_variance_ratio(Z1, Z2);
 
 xv = 1:m_.nMax; % this is denoted by P in [1]
 
-% theoretical results
+
+%% theoretical results (see [1])
 theory.phi = abs((1 - m_.alpha1).^xv - (1 - m_.alpha2).^xv);
 theory.max.sigma1 = sqrt((1 - (1 - m_.alpha1).^xv) .* (1 - m_.alpha1).^xv);
 theory.max.sigma2 = sqrt((1 - (1 - m_.alpha2).^xv) .* (1 - m_.alpha2).^xv);
@@ -130,7 +131,7 @@ theory.avg.psi = abs(m_.alpha1 - m_.alpha2) .* sqrt(xv) ./ ...
     (sqrt(m_.alpha1 * (1 - m_.alpha1)) + sqrt(m_.alpha2 * (1 - m_.alpha2)));
 
 
-% plots
+%% plots
 % Note: you can use either the theoretical or monte-carlo 
 %       curves as you see fit.
 figure;
