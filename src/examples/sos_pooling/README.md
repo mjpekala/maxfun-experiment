@@ -1,4 +1,7 @@
-This directory contains code to (a) reproduce a version of figure 1 from [1] and (b) explore the behavior of a new pooling technique based on partial sums of order statistics (termed "SOS pooling").
+This directory contains code to
+
+1. reproduce a version of figure 1 from [1] and
+2. explore the behavior of a new pooling technique based on partial sums of order statistics (termed "SOS pooling").
 
 
 ## REFERENCES
