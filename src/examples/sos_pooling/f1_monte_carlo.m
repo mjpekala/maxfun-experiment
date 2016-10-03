@@ -7,8 +7,10 @@
 %
 % The SOS pooling was orginally conceived as a way to bound
 % the performance of MAXFUN pooling (which is what we ultimately
-% care about).  It could, of course, also be considered as
-% an algorithm in its own right.
+% care about).  This is why some of the variables are named 
+% with "mf" - be aware I was not working with maxfun but 
+% rather a bound for it.
+%
 %
 % REFERENCES
 %  [1] Boureau et al. "A Theoretical Analysis of Feature Pooling in
@@ -18,7 +20,7 @@
 
 
 %% Experiment Parameters
-nTrials = 500;
+nTrials = 2000;
 
 m_.nMax = 3000;
 m_.mfFloor = [1 5 10 30];  % 'c' 10, 'b', 30
@@ -114,7 +116,7 @@ toc
 
 avgpool = mean_variance_ratio(X1, X2);
 maxpool = mean_variance_ratio(Y1, Y2);
-mfpool = mean_variance_ratio(Z1, Z2);
+sospool = mean_variance_ratio(Z1, Z2);
 
 xv = 1:m_.nMax;
 
@@ -127,20 +129,21 @@ plot(xv, maxpool.phi, 'r', ...
 xlabel('pool cardinality');
 legend('\phi_{max}', '\sigma_1 + \sigma_2', '\psi_{max}', '\psi_{avg}', 'Location', 'East');
 xlim(m_.xlim);
+title(sprintf('reproduction of subplot %s', m_.subfig));
 saveas(gcf, ['Fig1_MC_' m_.subfig '_1.eps'], 'epsc');
 
 
 figure;
 plot(xv, maxpool.psi, 'g:', ...
      xv, avgpool.psi, 'm-.', ...
-     xv, mfpool.psi(:,:,2), 'b', ...
-     xv, mfpool.psi(:,:,3), 'c', ...
-     xv, mfpool.psi(:,:,4), 'r', ...
+     xv, sospool.psi(:,:,2), 'b', ...
+     xv, sospool.psi(:,:,3), 'c', ...
+     xv, sospool.psi(:,:,4), 'r', ...
      'LineWidth', 2);
 xlabel('pool cardinality');
 legend('\psi_{max}', '\psi_{avg}', ...
-       ['\psi_{mf} (' num2str(m_.mfFloor(2)) ')'], ...
-       ['\psi_{mf} (' num2str(m_.mfFloor(3)) ')'], ...
-       ['\psi_{mf} (' num2str(m_.mfFloor(4)) ')'], ...
+       ['\psi_{sos} (' num2str(m_.mfFloor(2)) ')'], ...
+       ['\psi_{sos} (' num2str(m_.mfFloor(3)) ')'], ...
+       ['\psi_{sos} (' num2str(m_.mfFloor(4)) ')'], ...
        'Location', 'NorthWest');
 saveas(gcf, ['Fig1_MC_' m_.subfig '_2.eps'], 'epsc');
