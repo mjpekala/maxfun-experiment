@@ -132,6 +132,7 @@ for splitId = 1:p_.nSplits
     end
 
     %% determine the train/test split
+    % Note this will be the same split for all feature types.
     [isTrain, isTest] = select_n(data.y, p_.nTrain, p_.nTest);
 
     train.I = data.X(:,:,isTrain);
@@ -144,7 +145,6 @@ for splitId = 1:p_.nSplits
     test.y = data.y(isTest);
     test.files = data.files(isTest);
     test.idx = find(isTest);
-
 
     
     %% run the experiment with each feature type
@@ -164,11 +164,11 @@ for splitId = 1:p_.nSplits
         end
     
         fprintf('\n\n');   
-        fprintf('[%s]: generating training data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
+        fprintf('[%s]: generating training data for feature type %d (of %d)\n', mfilename, algoId, numel(feature_algos));
         feats.train.X = map_image(train.I, f_algo);
         feats.train.y = train.y;
         
-        fprintf('[%s]: generating test data for algorithm %d (of %d)\n', mfilename, algoId, numel(feature_algos));
+        fprintf('[%s]: generating test data for feature type %d (of %d)\n', mfilename, algoId, numel(feature_algos));
         feats.test.X = map_image(test.I, f_algo);
         feats.test.y = test.y;
 
@@ -200,7 +200,7 @@ for splitId = 1:p_.nSplits
             drawnow;
             fn = fullfile(experimentDir{splitId}, ...
                           sprintf('mp_study_%d.fig', algoId));
-            title(sprintf('maxfun analysis for algo %d', algoId));
+            title(sprintf('maxfun analysis for feature type %d', algoId));
             saveas(gca, fn)
         end
        
