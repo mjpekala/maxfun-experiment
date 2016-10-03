@@ -3,4 +3,4 @@ This directory contains code to (a) reproduce a version of figure 1 from [1] usi
 
 ## REFERENCES
  [1] Boureau et al. "A Theoretical Analysis of Feature Pooling in
-     Visual Recognition," 2010.
+     Visual Recognition," ICML, 2010.
