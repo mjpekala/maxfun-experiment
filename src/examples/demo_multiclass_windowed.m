@@ -291,6 +291,7 @@ for ll = 1:size(Acc,4)
     end
    
     fprintf('%s\n', header);
+    fprintf('-------+------------------------------------------------------------------------------------------\n');
     for ii = 1:size(Acc_mean,1)
         fprintf('y=%3d  |', yAll(ii));
         for jj = 1:size(Acc_mean,2)
@@ -300,9 +301,15 @@ for ll = 1:size(Acc,4)
     end
     
     % also show a marginal
+    fprintf('-------+------------------------------------------------------------------------------------------\n');
+    fprintf(' avg   |');
+    for jj = 1:size(Acc_mean,2)
+        fprintf(' %05.2f +/- %05.2f |', ...
+                100*mean(Acc_mean(:,jj)), 100*mean(Acc_std(:,jj)));
+    end
+    fprintf('\n\n\n');
 end
 
 
-% TODO
 
 diary off;
