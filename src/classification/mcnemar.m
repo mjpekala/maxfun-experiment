@@ -1,4 +1,4 @@
-function p = mcnemar(y_hat_1, y_hat_2, y)
+function [p, e_10, e_01] = mcnemar(y_hat_1, y_hat_2, y)
 %  MCNEMAR Runs McNemar's test for paired data [1]
 %
 %
