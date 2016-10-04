@@ -25,6 +25,7 @@ function p = mcnemar(y_hat_1, y_hat_2, y)
 %    Learning, The MIT Press (V1.1), 2004.
 %    [2] https://en.wikipedia.org/wiki/McNemar%27s_test
 
+
 is_correct_1 = (y_hat_1(:) == y(:));
 is_correct_2 = (y_hat_2(:) == y(:));
 
@@ -32,20 +33,22 @@ e_10 = sum(~is_correct_2 & is_correct_1);
 e_01 = sum(~is_correct_1 & is_correct_2);
 n = e_10 + e_01;
 
-if n < 25
-    % exact p-value for binomial test
+
+% This code implements an exact p-value for binomial test
+% and then corrects for mid-p McNemar test.
+
+b = min(e_10, e_01);
+    
+if 0
+    % This is the brute-force calculation.
+    % Computationally it is not a good idea.
     p = 0;
-    b = min(e_10, e_01);
     for ii = 0:b
         p = p + nchoosek(n, ii) * (.5)^ii * (.5)^(n-ii);
     end
     p = 2 * p;
-    
-    % correctoin for mid-p McNemar test
+    % correction for mid-p McNemar test
     p = p - nchoosek(n,b) * (.5)^b * (.5)^(n-b);
-    
 else
-    % The -1 in the numerator is a correction due to Edwards; see [2].
-    test_statistic = (abs(e_10 - e_01) - 1)^2 / n;
-    p = chi2cdf(test_statistic, 1, 'upper');
+    p = 2*binocdf(b, n, .5) - binopdf(b, n, .5);
 end
