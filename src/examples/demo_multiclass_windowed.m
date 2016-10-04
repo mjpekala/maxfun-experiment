@@ -336,17 +336,19 @@ end
 %  https://en.wikipedia.org/wiki/False_discovery_rate
 %--------------------------------------------------
 yAll = sort(unique(y_total(:)));
-fprintf('[%s]: comparing SIFT+L2 with Gabor+MF using McNemars test\n', mfilename);
+fprintf('[%s]: comparing (SIFT+L2) with (Gabor+MF) using McNemars test\n', mfilename);
 fprintf('  e_10 := # SIFT+L2 correct and Gabor+MF incorrect\n')
 fprintf('  e_01 := # SIFT+L2 correct and Gabor+MF incorrect\n')
 fprintf('  p    := p-value from McNemars test\n');
+fprintf('  n    := # of test instances with true label yi\n');
+fprintf('-------------------------------------------------\n');
 for ii = 1:length(yAll), yi = yAll(ii);
     idx = (y_total(:) == yi);
     [p, e_10, e_01] = mcnemar(y_hat_sift_l2(idx), ...
                               y_hat_gabor_mf(idx), ...
                               y_total(idx));
-    fprintf('  y=%3d, e_10=%3d, e_01=%3d, p=%0.4f\n', ...
-            yi, e_10, e_01, p);
+    fprintf('  y=%3d, n=%4d, e_10=%3d, e_01=%3d, p=%0.4f\n', ...
+            yi, sum(idx), e_10, e_01, p);
 end
 
 
