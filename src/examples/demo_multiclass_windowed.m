@@ -266,6 +266,14 @@ for kk = 1:length(experimentDir)
         n_pool_strat = size(Yhat,2);
         n_feat_types = size(Yhat,3);
         Acc = zeros(n_classes, n_pool_strat, p_.nSplits, n_feat_types);
+        
+        % Store detailed results for our primary algorithm candidates.
+        % For now, we limit these tests to comparing:
+        %    1. Gabor+MAXFUN  with
+        %    2. SIFT+pnorm
+        y_total = zeros(numel(test.y), p_.nSplits);
+        y_hat_sift_l2 = zeros(size(y_total));
+        y_hat_gabor_mf = zeros(size(y_total));
     end
 
     % add results for this particular split
@@ -278,10 +286,18 @@ for kk = 1:length(experimentDir)
             end
         end
     end
+   
+    % WARNING: this makes assumptions about the algorithm ordering above!
+    y_total(:,kk) = test.y;
+    y_hat_sift_l2(:,kk) = Yhat(:,4,1);
+    y_hat_gabor_mf(:,kk) = Yhat(:,5,2);
 end
 
 
-% display summary statistics
+%--------------------------------------------------
+% display summary statistics for all feature types
+% and pooling strategies.
+%--------------------------------------------------
 for ll = 1:size(Acc,4)
     Acc_feat = Acc(:,:,:,ll);
     Acc_mean = mean(Acc_feat,3);
@@ -312,6 +328,26 @@ for ll = 1:size(Acc,4)
     fprintf('\n\n\n');
 end
 
+
+%--------------------------------------------------
+% Here we do some simple hypothesis testing.
+% TODO: some kind of correction for multiple
+%       hypothesis testing (e.g. FDR)
+%  https://en.wikipedia.org/wiki/False_discovery_rate
+%--------------------------------------------------
+yAll = sort(unique(y_total(:)));
+fprintf('[%s]: comparing SIFT+L2 with Gabor+MF using McNemars test\n', mfilename);
+fprintf('  e_10 := # SIFT+L2 correct and Gabor+MF incorrect\n')
+fprintf('  e_01 := # SIFT+L2 correct and Gabor+MF incorrect\n')
+fprintf('  p    := p-value from McNemars test\n');
+for ii = 1:length(yAll), yi = yAll(ii);
+    idx = (y_total(:) == yi);
+    [p, e_10, e_01] = mcnemar(y_hat_sift_l2(idx), ...
+                              y_hat_gabor_mf(idx), ...
+                              y_total(idx));
+    fprintf('  y=%3d, e_10=%3d, e_01=%3d, p=%0.4f\n', ...
+            yi, e_10, e_01, p);
+end
 
 
 diary off;
