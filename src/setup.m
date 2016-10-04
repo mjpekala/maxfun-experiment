@@ -41,8 +41,18 @@ if ~exist('vl_dsift')
     fprintf('[%s]: using VLFeat from "%s"\n', mfilename, vlroot);
 end
 
+% LIBSVM [3]
+if ~exist('svmpredict')
+    libsvmDir = fullfile(appsDir, 'libsvm-3.21', 'matlab');
+    addpath(libsvmDir, '-begin');
+    fprintf('[%s]: using LIBSVM dir "%s"\n', mfilename, libsvmDir);
+end
+
+
 
 % Support for sparse coding [2].
+% Not all experiments require sparse coding, so this can
+% be optional.
 %
 % This is a slightly modified version of what start_spams.m does;
 % except it does not require we be in any particular directory.
@@ -56,13 +66,4 @@ if ~exist('test_release')
     setenv('MKL_DYNAMIC','NO');
     fprintf('[%s]: using SPAMS from "%s"\n', mfilename, spamsroot);
 end
-
-
-% LIBSVM [3]
-if ~exist('svmpredict')
-    libsvmDir = fullfile(appsDir, 'libsvm-3.21', 'matlab');
-    addpath(libsvmDir, '-begin');
-    fprintf('[%s]: using LIBSVM dir "%s"\n', mfilename, libsvmDir);
-end
-
 
