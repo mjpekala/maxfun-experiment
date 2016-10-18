@@ -4,18 +4,14 @@
 %   images into multiple "windows" prior to pooling.
 %
 
-
 % mjp, Oct. 2016
 
 
 %% Experiment Parameters 
 
 p_.seed = 9999;
-%p_.nSplits = 10;  
-p_.nSplits = 5;
-
-%p_.classesToUse = 1:101;
-p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
+p_.nSplits = 10;  
+%p_.nSplits = 5;
 
 
 % --= Dataset Parameters =--
@@ -24,10 +20,15 @@ p_.classesToUse = [1 2 3 4 6 13 20 24 48 56 95];
 p_.imageDir = '../datasets/101_ObjectCategories';
 p_.sz = [200 200];    % Gabor feature code requires square images
 p_.window_dim = 25;   % set to 0 for whole image pooling
-%p_.window_dim = 0;   % set to 0 for whole image pooling
 p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.nTrain = 30;       
 p_.nTest = 30;       
+p_.nHoldout = 30;     % # instances per class to hold out for final test
+                      % (after all experimentation is done)
+
+% this next parameter specifies how many instances of a given
+% class must be in the data set for us to use it.
+p_.nInstancesMin = p_.nTrain + p_.nTest;
 
 % --= Gabor parameters =--
 % choose b s.t., given p_.sz, Gabor has ~128 feature dimensions
@@ -38,11 +39,14 @@ p_.gabor.sigma = p_.gabor.b;
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 
 % --= SIFT parameters =--
-p_.sift.size = 4;             % see dl_vsift
+p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimensions
+
+%p_.sift.geom = [4 4 8];       % [nX, nY, nAngles]
+p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
 
 
 % --= output path stuff =--
-p_.experiment = sprintf('caltech-%d-w%d', numel(p_.classesToUse), p_.window_dim);
+p_.experiment = sprintf('caltech-nt%d-w%d', p_.nTest, p_.window_dim);
 p_.rootDir = fullfile('Results_dmw', [p_.experiment '_seed' num2str(p_.seed)]);
 
 p_.fn.raw = 'raw_data.mat';
@@ -71,12 +75,10 @@ downsample_rows = @(I,p) I(1:p:end,:,:,:);
 downsample_cols = @(I,p) I(:,1:p:end,:,:);
 downsample = @(I,p) downsample_cols(downsample_rows(I,p),p);
 
-% this function just runs sift (without macrofeatures)
-run_sift = @(I) sift_macrofeatures(single(I), ...
-                                   'step', p_.downsample, ...
-                                   'sz', p_.sift.size, ...
-                                   'subsamp', 0, ...
-                                   'macrosl', 0);
+% SIFT helper
+run_sift = @(I) dsift2(I, 'step', p_.downsample, ...
+                       'size', p_.sift.size, ...
+                       'geometry', p_.sift.geom);
 
 run_gabor = @(I) downsample(Gabor_transform(I, G), p_.downsample);
 
@@ -109,15 +111,34 @@ if ~exist('data', 'var')  % TEMP - remove me later!!
         error('failed to load dataset!  Do the files exist?');
     end
 
+    % 'hide' true test data while we are figuring out what parameters to
+    % use.  For now, we'll just take the first n instances of each class.
+    % 
+    % when finished designing all features, pooling, etc. can train on
+    % everything other than first_n and test on first_n.
+    %
+    idx = logical(ones(size(data.y)));
+    for yi = unique(data.y(:)')
+        first_n = find(data.y == yi, p_.nHoldout);
+        idx(first_n) = 0;
+    end
+    fprintf('[%s]: holding out %d instances for test\n', mfilename, sum(~idx));
+    data.y = data.y(idx);
+    data.X = data.X(:,:,idx);
+    data.files = data.files(idx);
+
     % pare down to classes of interest
-    if ~isempty(p_.classesToUse)
-        fprintf('[%s]: considering a %d class problem\n', mfilename, numel(p_.classesToUse));
-        idx = ismember(data.y, p_.classesToUse);
+    if p_.nInstancesMin > 0
+        n = hist(data.y, length(unique(data.y)));
+        enoughInstances = find(n >= p_.nInstancesMin);
+        idx = ismember(data.y, enoughInstances);
+
+        fprintf('[%s]: considering a %d class problem\n', mfilename, length(enoughInstances));
         data.y = data.y(idx);
         data.X = data.X(:,:,idx);
+        data.files = data.files(idx);
     end
 end
-
 
 
 %% Run experiments
@@ -190,7 +211,8 @@ for splitId = 1:p_.nSplits
             maxfun_pooling = @(X) spatial_pool(X, 'fun', pMF);
             toc
         else
-            maxfun_pooling = @(X) spatial_pool(X, 'fun', 15); % TEMP
+            % hard-coded choice.  this isn't a great idea (but runs more quickly).
+            maxfun_pooling = @(X) spatial_pool(X, 'fun', 15); 
         end
      
         %------------------------------
@@ -250,8 +272,11 @@ end
 
 
 %% Post-processing / analysis
-%
-% This is simply aggregating results across the various train/test splits.
+
+
+
+% This next bit of code is simply aggregating results across the
+% various train/test splits.
 
 for kk = 1:length(experimentDir)
     % load results from this split
@@ -331,25 +356,9 @@ end
 
 %--------------------------------------------------
 % Here we do some simple hypothesis testing.
-% TODO: some kind of correction for multiple
-%       hypothesis testing (e.g. FDR)
-%  https://en.wikipedia.org/wiki/False_discovery_rate
 %--------------------------------------------------
-yAll = sort(unique(y_total(:)));
-fprintf('[%s]: comparing (SIFT+L2) with (Gabor+MF) using McNemars test\n', mfilename);
-fprintf('  e_10 := # SIFT+L2 correct and Gabor+MF incorrect\n')
-fprintf('  e_01 := # SIFT+L2 correct and Gabor+MF incorrect\n')
-fprintf('  p    := p-value from McNemars test\n');
-fprintf('  n    := # of test instances with true label yi\n');
-fprintf('-------------------------------------------------\n');
-for ii = 1:length(yAll), yi = yAll(ii);
-    idx = (y_total(:) == yi);
-    [p, e_10, e_01] = mcnemar(y_hat_sift_l2(idx), ...
-                              y_hat_gabor_mf(idx), ...
-                              y_total(idx));
-    fprintf('  y=%3d, n=%4d, e_10=%3d, e_01=%3d, p=%0.4f\n', ...
-            yi, sum(idx), e_10, e_01, p);
-end
+mcnemar_multiclass(y_hat_sift_l2, y_hat_gabor_mf, y_total, ...
+                   'SIFT+L2', 'Gabor+MF');
 
 
 diary off;
