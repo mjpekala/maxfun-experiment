@@ -22,7 +22,7 @@ p_.window_dim = 25;   % set to 0 for whole image pooling
 p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.nTrain = 30;       
 p_.nTest = 30;       
-p_.nHoldout = 30;     % # instances per class to hold out for final test
+p_.nHoldout = 20;     % # instances per class to hold out for final test
                       % (after all experimentation is done)
 
 % this next parameter specifies how many instances of a given
@@ -41,7 +41,7 @@ p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimens
 
 %p_.sift.geom = [4 4 8]; 
 %p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
-p_.sift.geom = [3 3 8];
+p_.sift.geom = [2 2 16];
 
 
 %--------------------------------------------------
