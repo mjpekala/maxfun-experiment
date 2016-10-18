@@ -11,7 +11,6 @@
 
 p_.seed = 9999;
 p_.nSplits = 10;  
-%p_.nSplits = 5;
 
 
 % --= Dataset Parameters =--
@@ -30,23 +29,38 @@ p_.nHoldout = 30;     % # instances per class to hold out for final test
 % class must be in the data set for us to use it.
 p_.nInstancesMin = p_.nTrain + p_.nTest;
 
-% --= Gabor parameters =--
-% choose b s.t., given p_.sz, Gabor has ~128 feature dimensions
+%--------------------------------------------------
+% SIFT parameters
+%--------------------------------------------------
+p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimensions
+
+% Use the "geom" parameter to control the # of SIFT feature
+% dimensions; the semantics of this variable are:
+%    geom = [nX, nY, nAngles]
+% The default is [4 4 8], which gives 128 dimensions
+
+%p_.sift.geom = [4 4 8]; 
+p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
+
+
+%--------------------------------------------------
+% Gabor parameters 
+%--------------------------------------------------
 p_.gabor.M = p_.sz(1);
-p_.gabor.b = p_.gabor.M / 10;
+%p_.gabor.b = p_.gabor.M / 10;  % 121 feature dimensions
+p_.gabor.b = p_.gabor.M / 8; 
 p_.gabor.sigma = p_.gabor.b; 
 
 G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 
-% --= SIFT parameters =--
-p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimensions
-
-%p_.sift.geom = [4 4 8];       % [nX, nY, nAngles]
-p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
+% limit # of gabor features to be the same as SIFT
+G = G(:,:,1:prod(p_.sift.geom));
 
 
-% --= output path stuff =--
-p_.experiment = sprintf('caltech-nt%d-w%d', p_.nTest, p_.window_dim);
+%--------------------------------------------------
+% output path stuff
+%--------------------------------------------------
+p_.experiment = sprintf('caltech-nt%d-w%d', p_.nHoldout, p_.window_dim);
 p_.rootDir = fullfile('Results_dmw', [p_.experiment '_seed' num2str(p_.seed)]);
 
 p_.fn.raw = 'raw_data.mat';
@@ -105,7 +119,7 @@ loadedRawImagesYet = false;
 
 
 %% load raw images
-if ~exist('data', 'var')  % TEMP - remove me later!!
+if true % ~exist('data', 'var')  
     data = load_image_dataset(p_.imageDir, p_.sz);
     if numel(data.y) == 0
         error('failed to load dataset!  Do the files exist?');
@@ -139,6 +153,7 @@ if ~exist('data', 'var')  % TEMP - remove me later!!
         data.files = data.files(idx);
     end
 end
+
 
 
 %% Run experiments
