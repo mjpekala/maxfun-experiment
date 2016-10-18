@@ -71,6 +71,11 @@ p_.fn.results = 'results.mat';
 
 p_  % show parameters to user
 
+fprintf('[%s]: SIFT will have %d feature dimensions\n', ...
+        mfilename, prod(p_.sift.geom));
+fprintf('[%s]: Gabor will have %d feature dimensions\n', ...
+        mfilename, size(G,3));
+
 
 %% some helper functions
 
