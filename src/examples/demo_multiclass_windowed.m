@@ -40,7 +40,8 @@ p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimens
 % The default is [4 4 8], which gives 128 dimensions
 
 %p_.sift.geom = [4 4 8]; 
-p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
+%p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
+p_.sift.geom = [3 3 8];
 
 
 %--------------------------------------------------
