@@ -14,8 +14,9 @@ imageDir = '../datasets/101_ObjectCategories';
 sz = [200 200];    % note: our gabor feature code requires square images
 seed = 9999;       % for repeatable results
 n_test = 30;       % number of instances from each class to reserve
-                   % for test
-n_train_min = 25;
+                   % for test.
+
+n_train_min = 50;  % this needs to be large enough for validation
 
 
 rng(seed);
