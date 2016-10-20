@@ -18,8 +18,8 @@ p_.nSplits = 10;
 %       Make sure to change as appropriate.
 p_.imageDir = '../datasets/101_ObjectCategories';
 p_.sz = [200 200];    % Gabor feature code requires square images
-p_.window_dim = 25;   % set to 0 for whole image pooling
 p_.downsample = 4;    % feature space downsampling; alleviates memory issues
+p_.window_dim = (p_.sz(1) / p_.downsample) / 2;   % set to 0 for whole image pooling
 p_.nTrain = 30;       
 p_.nTest = 30;       
 p_.nHoldout = 20;     % # instances per class to hold out for final test
