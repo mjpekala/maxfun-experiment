@@ -22,26 +22,12 @@ p_.downsample = 4;    % feature space downsampling; alleviates memory issues
 p_.window_dim = (p_.sz(1) / p_.downsample) / 2;   % set to 0 for whole image pooling
 p_.nTrain = 30;       
 p_.nTest = 30;       
-p_.nHoldout = 20;     % # instances per class to hold out for final test
-                      % (after all experimentation is done)
-
-% this next parameter specifies how many instances of a given
-% class must be in the data set for us to use it.
-p_.nInstancesMin = p_.nTrain + p_.nTest;
 
 %--------------------------------------------------
 % SIFT parameters
 %--------------------------------------------------
 p_.sift.size = 4;             % # of pixels per histogram bin in x- and y-dimensions
-
-% Use the "geom" parameter to control the # of SIFT feature
-% dimensions; the semantics of this variable are:
-%    geom = [nX, nY, nAngles]
-% The default is [4 4 8], which gives 128 dimensions
-
-%p_.sift.geom = [4 4 8]; 
-%p_.sift.geom = [4 4 4];       % TEMP - for only 64 dimensions
-p_.sift.geom = [2 2 16];
+p_.sift.geom = [2 2 16];      % [nX nY nAngles]
 
 
 %--------------------------------------------------
@@ -61,7 +47,7 @@ G = G(:,:,1:prod(p_.sift.geom));
 %--------------------------------------------------
 % output path stuff
 %--------------------------------------------------
-p_.experiment = sprintf('caltech-nt%d-w%d', p_.nHoldout, p_.window_dim);
+p_.experiment = sprintf('caltech-window%d', p_.window_dim);
 p_.rootDir = fullfile('Results_dmw', [p_.experiment '_seed' num2str(p_.seed)]);
 
 p_.fn.raw = 'raw_data.mat';
@@ -131,33 +117,15 @@ if true % ~exist('data', 'var')
         error('failed to load dataset!  Do the files exist?');
     end
 
-    % 'hide' true test data while we are figuring out what parameters to
-    % use.  For now, we'll just take the first n instances of each class.
-    % 
-    % when finished designing all features, pooling, etc. can train on
-    % everything other than first_n and test on first_n.
-    %
-    idx = logical(ones(size(data.y)));
-    for yi = unique(data.y(:)')
-        first_n = find(data.y == yi, p_.nHoldout);
-        idx(first_n) = 0;
-    end
-    fprintf('[%s]: holding out %d instances for test\n', mfilename, sum(~idx));
+    % pare down to classes for which we have sufficient data
+    n = hist(data.y, length(unique(data.y)));
+    enoughInstances = find(n >= p_.nTrain + p_.nTest);
+    idx = ismember(data.y, enoughInstances);
+    
+    fprintf('[%s]: considering a %d class problem\n', mfilename, length(enoughInstances));
     data.y = data.y(idx);
     data.X = data.X(:,:,idx);
     data.files = data.files(idx);
-
-    % pare down to classes of interest
-    if p_.nInstancesMin > 0
-        n = hist(data.y, length(unique(data.y)));
-        enoughInstances = find(n >= p_.nInstancesMin);
-        idx = ismember(data.y, enoughInstances);
-
-        fprintf('[%s]: considering a %d class problem\n', mfilename, length(enoughInstances));
-        data.y = data.y(idx);
-        data.X = data.X(:,:,idx);
-        data.files = data.files(idx);
-    end
 end
 
 
