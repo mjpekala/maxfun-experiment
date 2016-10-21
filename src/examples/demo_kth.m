@@ -1,4 +1,8 @@
+% DEMO_KTH  Simple pooling experiments on a texture data set.
+%
 % This script assumes you are runnign from pwd.
+
+% mjp, oct 2016
 
 rng(9999, 'twister');
 
@@ -51,24 +55,31 @@ fun_pooling = @(X) spatial_pool(X, 'fun', 12);  % TODO: hyperparameter selection
 f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
 
-%% simple analysis
+%% do some very simple analysis
 
-Y_hat = [];
-Y_true = [];
+y_hat_all = {};
+y_true_all = {};
 
-for ii = 1:n_folds
-    test_id = ii;
-    valid_id = ii+1;  if valid_set > n_folds, valid_set = 1; end
-    train_id = setdiff(1:5, [test_set, valid_set]);
+%parfor fold_id = 1:n_folds
+for fold_id = 1:n_folds
+    
+    % partition data into subsets.
+    % note that the size of the test set may vary from fold to fold.
+    test_id = fold_id;
+    valid_id = fold_id+1;  if valid_id > n_folds, valid_id = 1; end
+    train_id = setdiff(1:5, [test_id, valid_id]);
     
     is_train = ismember(data.fold, train_id);
     is_valid = ismember(data.fold, valid_id);
     is_test = ismember(data.fold, test_id);
+   
+    Y_hat = zeros(sum(is_test), length(f_feat), length(f_pool));
 
     for ff = 1:length(f_feat)
         for pp = 1:length(f_pool)
-            % recalculating features this way is computationally wasteful 
-            % but uses minimal memory resources.
+            % recalculating features each time is computationally wasteful but 
+            % this avoids having to keep large datasets in memory.
+            fprintf('[%s]: creating features (f=%d, p=%d)\n', mfilename, ff, pp);
             f = @(I) f_pool{pp}(f_feat{ff}(I));
  
             tic; 
@@ -86,31 +97,20 @@ for ii = 1:n_folds
 
             if isempty(Y_hat)
                 Y_hat = zeros(numel(y_hat), length(f_feat), length(f_pool), n_folds);
-                Y_true = zeros(size(Y_hat));
+                Y_true = zeros(numel(y_test), n_folds);
             end
-            Y_hat(:, ff, pp, ii) = y_hat(:);
-            Y_true(:, ff, pp, ii) = y_test(:);
+            Y_hat(:, ff, pp) = y_hat(:);
         end
     end
+
+    y_hat_all{fold_id} = Y_hat;
+    y_all{fold_id} = y_test;
+
+    recall_per_class(Y_hat, y_test);
+    
+    mcnemar_multiclass(Y_hat(:,1,4), Y_hat(:,2,5), y_test, 'SIFT+L2', 'Gabor_MF');
+
+    break % for now, one fold only
 end
 
 return % TEMP
-
-
-X_vec = reshape(data.X, size(data.X,1)*size(data.X,2), size(data.X, 3));
-x_avg = mean(X_vec, 1);
-x_max = max(X_vec, [], 1);
-x_ell2 = sum(X_vec.^2);
-
-figure;
-boxplot(x_avg, data.y);
-title('KTH TIPS: average pooling (whole image)');
-
-figure;
-boxplot(x_max, data.y);
-title('KTH TIPS: max pooling (whole image)');
-
-figure;
-boxplot(x_ell2, data.y);
-title('KTH TIPS: ell^2 pooling (whole image)');
-
