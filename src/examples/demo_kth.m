@@ -106,6 +106,8 @@ for fold_id = 1:n_folds
     y_hat_all{fold_id} = Y_hat;
     y_all{fold_id} = y_test;
 
+    save('results_kth_fold%d.mat', Y_hat, y_test);
+
     recall_per_class(Y_hat, y_test);
     
     mcnemar_multiclass(Y_hat(:,1,4), Y_hat(:,2,5), y_test, 'SIFT+L2', 'Gabor_MF');
