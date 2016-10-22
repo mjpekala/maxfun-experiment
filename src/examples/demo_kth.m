@@ -109,10 +109,6 @@ for fold_id = 1:n_folds
     save(sprintf('results_kth_fold%02d.mat', fold_id), 'Y_hat', 'y_test');
 
     recall_per_class(Y_hat, y_test);
-    
     mcnemar_multiclass(Y_hat(:,1,4), Y_hat(:,2,5), y_test, 'SIFT+L2', 'Gabor_MF');
-
-    break % for now, one fold only
 end
 
-return % TEMP
