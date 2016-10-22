@@ -8,7 +8,7 @@ rng(9999, 'twister');
 
 
 %% load data
-n_folds = 5;
+n_folds = 3;
 
 data = load_image_dataset('../datasets/KTH_TIPS', [200 200]);
 data.X = single(data.X);
@@ -50,7 +50,7 @@ max_pooling = @(X) spatial_pool(X, 'max');
 avg_pooling = @(X) spatial_pool(X, 'avg');
 avg_abs_pooling = @(X) spatial_pool(abs(X), 'max');
 ell2_pooling = @(X) spatial_pool(X, 'pnorm', 2);
-fun_pooling = @(X) spatial_pool(X, 'fun', 12);  % TODO: hyperparameter selection
+fun_pooling = @(X) spatial_pool(X, 'fun', 12);  % *** TODO: hyperparameter selection
 
 f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
@@ -104,9 +104,9 @@ for fold_id = 1:n_folds
     end
 
     y_hat_all{fold_id} = Y_hat;
-    y_all{fold_id} = y_test;
+    y_true_all{fold_id} = y_test;
 
-    save('results_kth_fold%d.mat', Y_hat, y_test);
+    save(sprintf('results_kth_fold%02d.mat', fold_id), 'Y_hat', 'y_test');
 
     recall_per_class(Y_hat, y_test);
     
