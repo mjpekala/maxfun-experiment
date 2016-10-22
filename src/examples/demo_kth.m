@@ -6,11 +6,17 @@
 
 rng(9999, 'twister');
 
+% XXX: note to self - we probably want "mixed" images with both
+% texture and edges.  The gabor will hit the textures and hopefully
+% maxfun can help localize.  Hence, in this particular experiment we
+% probably don't expect a bit difference between maxfun and avg.
+
 
 %% load data
 n_folds = 3;
 
-data = load_image_dataset('../datasets/KTH_TIPS', [200 200]);
+%data = load_image_dataset('../datasets/KTH_TIPS', [200 200]);
+data = load_image_dataset('../datasets/KTH_TIPS', [100 100]);  % TEMP
 data.X = single(data.X);
 
 nth = @(x,n) x(n);  % due to matlab slicing limitation
@@ -48,9 +54,9 @@ f_feat = {sift_feats, gabor_feats};
 
 max_pooling = @(X) spatial_pool(X, 'max');
 avg_pooling = @(X) spatial_pool(X, 'avg');
-avg_abs_pooling = @(X) spatial_pool(abs(X), 'max');
+avg_abs_pooling = @(X) spatial_pool(abs(X), 'avg');
 ell2_pooling = @(X) spatial_pool(X, 'pnorm', 2);
-fun_pooling = @(X) spatial_pool(X, 'fun', 12);  % *** TODO: hyperparameter selection
+fun_pooling = @(X) spatial_pool(X, 'fun', 30);  % *** TODO: hyperparameter selection
 
 f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
@@ -60,8 +66,13 @@ f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 y_hat_all = {};
 y_true_all = {};
 
-%parfor fold_id = 1:n_folds
+diary(sprintf('log_demo_kth_%s.txt', datestr(now)));
+main_timer = tic;
+
 for fold_id = 1:n_folds
+    fprintf('-------------------------------------------------------\n');
+    fprintf('[%s]: starting fold %d (of %d)\n', mfilename, fold_id, n_folds);
+    fprintf('-------------------------------------------------------\n');
     
     % partition data into subsets.
     % note that the size of the test set may vary from fold to fold.
@@ -82,15 +93,11 @@ for fold_id = 1:n_folds
             fprintf('[%s]: creating features (f=%d, p=%d)\n', mfilename, ff, pp);
             f = @(I) f_pool{pp}(f_feat{ff}(I));
  
-            tic; 
             X_train = squeeze(map_image(data.X(:,:,is_train), f)); 
             y_train = data.y(is_train);
-            toc
 
-            tic; 
             X_test = squeeze(map_image(data.X(:,:,is_test), f)); 
             y_test = data.y(is_test);
-            toc
 
             % the transpose below is for rows-as-objects
             [y_hat, metrics] = eval_svm(X_train', y_train, X_test', y_test);
@@ -108,7 +115,13 @@ for fold_id = 1:n_folds
 
     save(sprintf('results_kth_fold%02d.mat', fold_id), 'Y_hat', 'y_test');
 
-    recall_per_class(Y_hat, y_test);
+    for ff = 1:length(f_feat)
+        fprintf('[%s]: classification performance for feature type %d\n',  mfilename, ff);
+        recall_per_class(Y_hat(:,ff,:,:), y_test);
+    end
     mcnemar_multiclass(Y_hat(:,1,4), Y_hat(:,2,5), y_test, 'SIFT+L2', 'Gabor_MF');
+    
+    fprintf('[%s]: net time elapsed: %0.2f (min)\n', mfilename, toc(main_timer)/60);
 end
 
+diary off;
