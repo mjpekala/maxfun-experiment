@@ -10,6 +10,9 @@ rng(9999, 'twister');
 % texture and edges.  The gabor will hit the textures and hopefully
 % maxfun can help localize.  Hence, in this particular experiment we
 % probably don't expect a bit difference between maxfun and avg.
+%
+% Given a large uniform texture there is no real reason to believe
+% that honing in on a subset of it will be particularly advantageous.
 
 
 %% load data
