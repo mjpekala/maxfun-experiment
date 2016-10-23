@@ -22,12 +22,6 @@ n_folds = 3;
 data = load_image_dataset('../datasets/KTH_TIPS', [100 100]);  % TEMP
 data.X = single(data.X);
 
-nth = @(x,n) x(n);  % due to matlab slicing limitation
-get_class_name = @(fn) nth(strsplit(fn, '/'), 4);
-
-y_all = sort(unique(data.y));
-y_str = cellfun(get_class_name, data.files);
-
 data.fold = assign_folds(data.y, n_folds);
 
 
@@ -120,7 +114,7 @@ for fold_id = 1:n_folds
 
     for ff = 1:length(f_feat)
         fprintf('[%s]: classification performance for feature type %d\n',  mfilename, ff);
-        recall_per_class(Y_hat(:,ff,:,:), y_test);
+        recall_per_class(Y_hat(:,ff,:,:), y_test, data.class_names);
     end
     mcnemar_multiclass(Y_hat(:,1,4), Y_hat(:,2,5), y_test, 'SIFT+L2', 'Gabor_MF');
     
