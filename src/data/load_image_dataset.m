@@ -57,6 +57,7 @@ classNames = {};
 for ii = 1:length(classDirs)
     classNames{ii} = classDirs(ii).name;
 end
+data.class_names = classNames;
 
 
 % get a list of all individual image filenames.
