@@ -16,13 +16,13 @@ rng(9999, 'twister');
 
 
 %% load data
-n_folds = 3;
+p_.n_folds = 3;
+p_.sz = 50;
 
-%data = load_image_dataset('../datasets/KTH_TIPS', [200 200]);
-data = load_image_dataset('../datasets/KTH_TIPS', [100 100]);  % TEMP
+data = load_image_dataset('../datasets/KTH_TIPS', [p_.sz p_.sz]); 
 data.X = single(data.X);
 
-data.fold = assign_folds(data.y, n_folds);
+data.fold = assign_folds(data.y, p_.n_folds);
 
 
 %% set up feature extractors
@@ -60,21 +60,24 @@ f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
 %% do some very simple analysis
 
+desc = sprintf('demo_kth_d=%d', p_.sz);
+fprintf('[%s]: starting experiment "%s"\n', mfilename, desc);
+
 y_hat_all = {};
 y_true_all = {};
 
-diary(sprintf('log_demo_kth_%s.txt', datestr(now)));
+diary(sprintf('log_%s_%s.txt', desc, datestr(now)));
 main_timer = tic;
 
-for fold_id = 1:n_folds
+for fold_id = 1:p_.n_folds
     fprintf('-------------------------------------------------------\n');
-    fprintf('[%s]: starting fold %d (of %d)\n', mfilename, fold_id, n_folds);
+    fprintf('[%s]: starting fold %d (of %d)\n', mfilename, fold_id, p_.n_folds);
     fprintf('-------------------------------------------------------\n');
     
     % partition data into subsets.
     % note that the size of the test set may vary from fold to fold.
     test_id = fold_id;
-    valid_id = fold_id+1;  if valid_id > n_folds, valid_id = 1; end
+    valid_id = fold_id+1;  if valid_id > p_.n_folds, valid_id = 1; end
     train_id = setdiff(1:5, [test_id, valid_id]);
     
     is_train = ismember(data.fold, train_id);
@@ -100,8 +103,8 @@ for fold_id = 1:n_folds
             [y_hat, metrics] = eval_svm(X_train', y_train, X_test', y_test);
 
             if isempty(Y_hat)
-                Y_hat = zeros(numel(y_hat), length(f_feat), length(f_pool), n_folds);
-                Y_true = zeros(numel(y_test), n_folds);
+                Y_hat = zeros(numel(y_hat), length(f_feat), length(f_pool), p_.n_folds);
+                Y_true = zeros(numel(y_test), p_.n_folds);
             end
             Y_hat(:, ff, pp) = y_hat(:);
         end
@@ -110,7 +113,7 @@ for fold_id = 1:n_folds
     y_hat_all{fold_id} = Y_hat;
     y_true_all{fold_id} = y_test;
 
-    save(sprintf('results_kth_fold%02d.mat', fold_id), 'Y_hat', 'y_test');
+    save(sprintf('results_%s_fold%02d.mat', desc, fold_id), 'Y_hat', 'y_test', 'p_');
 
     for ff = 1:length(f_feat)
         fprintf('[%s]: classification performance for feature type %d\n',  mfilename, ff);
