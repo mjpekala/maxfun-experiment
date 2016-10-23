@@ -16,13 +16,12 @@ rng(9999, 'twister');
 
 
 %% load data
-p_.n_folds = 3;
+n_trials = 2;
 p_.sz = 50;
 
 data = load_image_dataset('../datasets/KTH_TIPS', [p_.sz p_.sz]); 
 data.X = single(data.X);
 
-data.fold = assign_folds(data.y, p_.n_folds);
 
 
 %% set up feature extractors
@@ -53,7 +52,7 @@ max_pooling = @(X) spatial_pool(X, 'max');
 avg_pooling = @(X) spatial_pool(X, 'avg');
 avg_abs_pooling = @(X) spatial_pool(abs(X), 'avg');
 ell2_pooling = @(X) spatial_pool(X, 'pnorm', 2);
-fun_pooling = @(X) spatial_pool(X, 'fun', 30);  % *** TODO: hyperparameter selection
+fun_pooling = @(X) spatial_pool(X, 'fun', floor(p_.sz/4));  % *** TODO: hyperparameter selection
 
 f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
@@ -63,27 +62,21 @@ f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 desc = sprintf('demo_kth_d=%d', p_.sz);
 fprintf('[%s]: starting experiment "%s"\n', mfilename, desc);
 
-y_hat_all = {};
-y_true_all = {};
-
 diary(sprintf('log_%s_%s.txt', desc, datestr(now)));
 main_timer = tic;
 
-for fold_id = 1:p_.n_folds
+acc_all = zeros(length(unique(data.y)), length(f_feat), length(f_pool), n_trials);
+
+for trial_id = 1:n_trials
     fprintf('-------------------------------------------------------\n');
-    fprintf('[%s]: starting fold %d (of %d)\n', mfilename, fold_id, p_.n_folds);
+    fprintf('[%s]: starting trial %d (of %d)\n', mfilename, trial_id, n_trials);
     fprintf('-------------------------------------------------------\n');
+
+    % choose a random train/test split
+    fold_id = assign_folds(data.y, 2);
+    is_train = (fold_id == 1);
+    is_test = (fold_id == 2);
     
-    % partition data into subsets.
-    % note that the size of the test set may vary from fold to fold.
-    test_id = fold_id;
-    valid_id = fold_id+1;  if valid_id > p_.n_folds, valid_id = 1; end
-    train_id = setdiff(1:5, [test_id, valid_id]);
-    
-    is_train = ismember(data.fold, train_id);
-    is_valid = ismember(data.fold, valid_id);
-    is_test = ismember(data.fold, test_id);
-   
     Y_hat = zeros(sum(is_test), length(f_feat), length(f_pool));
 
     for ff = 1:length(f_feat)
@@ -99,22 +92,21 @@ for fold_id = 1:p_.n_folds
             X_test = squeeze(map_image(data.X(:,:,is_test), f)); 
             y_test = data.y(is_test);
 
+            % train and test classifier.
             % the transpose below is for rows-as-objects
             [y_hat, metrics] = eval_svm(X_train', y_train, X_test', y_test);
-
-            if isempty(Y_hat)
-                Y_hat = zeros(numel(y_hat), length(f_feat), length(f_pool), p_.n_folds);
-                Y_true = zeros(numel(y_test), p_.n_folds);
-            end
             Y_hat(:, ff, pp) = y_hat(:);
+            acc_all(:,ff,pp,trial_id) = metrics.acc;
         end
     end
 
-    y_hat_all{fold_id} = Y_hat;
-    y_true_all{fold_id} = y_test;
+    % store results from this trial
+    save(sprintf('results_%s_trial=%02d.mat', desc, trial_id), 'Y_hat', 'y_test', 'p_');
+   
+    y_hat_all{trial_id} = Y_hat;
+    y_true_all{trial_id} = y_test;
 
-    save(sprintf('results_%s_fold%02d.mat', desc, fold_id), 'Y_hat', 'y_test', 'p_');
-
+    % report results for this trial
     for ff = 1:length(f_feat)
         fprintf('[%s]: classification performance for feature type %d\n',  mfilename, ff);
         recall_per_class(Y_hat(:,ff,:,:), y_test, data.class_names);
@@ -123,5 +115,23 @@ for fold_id = 1:p_.n_folds
     
     fprintf('[%s]: net time elapsed: %0.2f (min)\n', mfilename, toc(main_timer)/60);
 end
+
+
+% Analysis of aggregate performance.
+for ff = 1:length(f_feat)
+    fprintf('Feature type %d:\n', ff);
+    
+    for yi = 1:size(acc_all,1)
+        fprintf('%12s |', data.class_names{yi});
+        for pp = 1:length(f_pool)
+            mu = 100*mean(acc_all(yi, ff, pp, :));
+            sigma = 100*std(acc_all(yi, ff, pp, :));
+            fprintf(' %6.2f (%5.2f) |', mu, sigma);
+        end
+        fprintf('\n');
+    end
+    fprintf('\n');
+end
+
 
 diary off;
