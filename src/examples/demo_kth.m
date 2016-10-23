@@ -16,7 +16,7 @@ rng(9999, 'twister');
 
 
 %% load data
-n_trials = 2;
+n_trials = 10;
 p_.sz = 50;
 
 data = load_image_dataset('../datasets/KTH_TIPS', [p_.sz p_.sz]); 
@@ -122,7 +122,7 @@ for ff = 1:length(f_feat)
     fprintf('Feature type %d:\n', ff);
     
     for yi = 1:size(acc_all,1)
-        fprintf('%12s |', data.class_names{yi});
+        fprintf('%14s |', data.class_names{yi});
         for pp = 1:length(f_pool)
             mu = 100*mean(acc_all(yi, ff, pp, :));
             sigma = 100*std(acc_all(yi, ff, pp, :));
