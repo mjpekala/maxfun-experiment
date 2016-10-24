@@ -24,7 +24,8 @@ G = Gabor_construct(p_.gabor.M, p_.gabor.b, p_.gabor.sigma);
 % limit # of gabor features to be the same as SIFT
 G = G(:,:,1:prod(p_.sift.geom));
 
-gabor_xform = @(I) abs(Gabor_transform(I, G));
+%gabor_xform = @(I) abs(Gabor_transform(I, G));
+gabor_xform = @(I) Gabor_transform(I, G);
 
 
 %% Some manual analysis
@@ -36,18 +37,34 @@ X_foil = data.X(:,:,data.y==1);
 
 for yi = unique(data.y(:)')
     Xi = data.X(:,:,find(data.y == yi, 1));
+    
     figure; imagesc(Xi);  colormap('gray');  
     title(data.class_names{yi});
-    figure; view_feats(gabor_xform(Xi), 5); 
+    
+    figure; view_feats(abs(gabor_xform(Xi)), 5); 
     title(sprintf('%s gabor', data.class_names{yi}));
+    
     figure; view_feats(sift_xform(Xi), 5); 
     title(sprintf('%s sift', data.class_names{yi}));
 end
 
 
 %% 
-e_gabor = squeeze(sum(sum(sum(X_foil_gabor,1), 2), 4));
+X_foil_gabor = map_image(data.X(:,:,data.y==1), gabor_xform);
+e_gabor_real = squeeze(sum(sum(sum(real(X_foil_gabor), 1), 2), 4));
+e_gabor_imag = squeeze(sum(sum(sum(imag(X_foil_gabor), 1), 2), 4));
+e_gabor_mag = squeeze(sum(sum(sum(abs(X_foil_gabor), 1), 2), 4));
 
-figure; stem(e_gabor);
-xlabel('feature dimension');
-ylabel('sum');
+figure; 
+stem(e_gabor_mag); 
+hold on; 
+plot(1:length(e_gabor_real), e_gabor_real, 'x');
+plot(1:length(e_gabor_imag), e_gabor_imag, 'd');
+hold off;
+legend('modulus', 'real', 'imag');
+xlabel('feature dimension'); ylabel('sum');
+title('gabor, y=foil');
+
+figure; stem(e_gabor_imag);
+xlabel('feature dimension'); ylabel('sum');
+title('imag(gabor) y=foil');
