@@ -8,9 +8,9 @@ rng(9999, 'twister');
 
 
 %% load data
-n_trials = 10;
+n_trials = 1;
 
-if 1
+if 0
     % in this experiment we do not expect to see a large difference
     % between maxfun and average given that the images are fairly
     % "uniform" in that the texture spans the entire image.
@@ -29,6 +29,9 @@ end
 
 
 %% set up feature extractors
+
+% Note: by default SIFT generates tensors of uints while Gabor will
+% create tensors of doubles.
 p_.sift.size = 4;
 p_.sift.geom = [4 4 8];      % [nX nY nAngles]
 
