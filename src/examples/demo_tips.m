@@ -1,4 +1,4 @@
-% DEMO_KTH  Simple pooling experiments on a texture data set.
+% DEMO_TIPS  Simple pooling experiments on texture data sets.
 %
 % This script assumes you are running from pwd.
 
@@ -24,7 +24,7 @@ if 0
 else
     p_.sz = 100;
     data = load_image_dataset('../datasets/UMD_Composite', [p_.sz p_.sz]); 
-    desc = sprintf('demo_UMD_d=%d', p_.sz);
+    desc = sprintf('demo_UMD_dim=%d', p_.sz);
 end
 
 
