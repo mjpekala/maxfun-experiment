@@ -9,7 +9,7 @@ rng(9999, 'twister');
 p_.patch_sz = 50;
 p_.image_sz = 100;
 p_.n_per_class = 100;
-p_.n_clutter_lines = 15;
+p_.n_clutter_lines = 0;  % TODO
 p_.color_range = [100 200];
 
 make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
