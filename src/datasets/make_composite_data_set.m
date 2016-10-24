@@ -6,8 +6,10 @@
 
 rng(9999, 'twister');
 
-p_.patch_sz = 50;
-p_.image_sz = 100;
+%p_.patch_sz = 50;
+%p_.image_sz = 100;
+p_.patch_sz = 200;
+p_.image_sz = 300;
 p_.n_per_class = 100;
 p_.n_clutter_lines = 0;  % TODO
 p_.color_range = [100 200];
@@ -16,7 +18,7 @@ make_dir = @(dirName) ~exist(dirName) && mkdir(dirName);
 
 
 %% load texture data
-data = load_image_dataset('../datasets/KTH_TIPS', p_.patch_sz * [1 1]);
+data = load_image_dataset('../datasets/KTH_TIPS', p_.patch_sz*[1 1]);
 data.X = single(data.X);
 
 
