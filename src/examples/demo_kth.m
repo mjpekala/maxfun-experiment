@@ -1,27 +1,31 @@
 % DEMO_KTH  Simple pooling experiments on a texture data set.
 %
-% This script assumes you are runnign from pwd.
+% This script assumes you are running from pwd.
 
 % mjp, oct 2016
 
 rng(9999, 'twister');
 
-% XXX: note to self - we probably want "mixed" images with both
-% texture and edges.  The gabor will hit the textures and hopefully
-% maxfun can help localize.  Hence, in this particular experiment we
-% probably don't expect a bit difference between maxfun and avg.
-%
-% Given a large uniform texture there is no real reason to believe
-% that honing in on a subset of it will be particularly advantageous.
-
 
 %% load data
 n_trials = 10;
-p_.sz = 50;
 
-data = load_image_dataset('../datasets/KTH_TIPS', [p_.sz p_.sz]); 
-data.X = single(data.X);
-
+if 1
+    % in this experiment we do not expect to see a large difference
+    % between maxfun and average given that the images are fairly
+    % "uniform" in that the texture spans the entire image.
+    %
+    % More heterogeneous images might identify some differences,
+    % however.
+    p_.sz = 50;
+    data = load_image_dataset('../datasets/KTH_TIPS', [p_.sz p_.sz]); 
+    data.X = single(data.X);
+    desc = sprintf('demo_KTH_d=%d', p_.sz);
+else
+    p_.sz = 100;
+    data = load_image_dataset('../datasets/UMD_Composite', [p_.sz p_.sz]); 
+    desc = sprintf('demo_UMD_d=%d', p_.sz);
+end
 
 
 %% set up feature extractors
@@ -59,7 +63,6 @@ f_pool = {max_pooling, avg_pooling, avg_abs_pooling, ell2_pooling, fun_pooling};
 
 %% do some very simple analysis
 
-desc = sprintf('demo_kth_d=%d', p_.sz);
 fprintf('[%s]: starting experiment "%s"\n', mfilename, desc);
 
 diary(sprintf('log_%s_%s.txt', desc, datestr(now)));
