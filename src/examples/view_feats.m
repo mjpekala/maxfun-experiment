@@ -10,7 +10,7 @@ for ii = 2:n
     Img = [Img ; cat3(X(:,:,a:b))];
 end
 
-figure; imagesc(Img);
+imagesc(Img);
 colorbar;
 colormap('gray');
 set(gca, 'YTick', [], 'XTick', []);
