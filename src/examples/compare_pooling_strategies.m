@@ -9,10 +9,11 @@
 %% Experiment Parameters
 
 % Dataset parameters
-if 0
+if 1
     p_.data_dir = '../datasets/101_ObjectCategories';
     p_.classes_to_use = [];       % empty := use whole data set
     p_.classes_to_use = [10 11];  % a quick test case
+    p_.classes_to_use = 1:10;     % small multi-class
 else
     p_.data_dir = '../datasets/curetgrey';
     p_.classes_to_use = [4 8 10 24 35];  
