@@ -5,20 +5,31 @@
 
 % mjp, oct 2016
 
+
 %% Experiment Parameters
 
+% Dataset parameters
 p_.data_dir = '../datasets/101_ObjectCategories';
+
+p_.classes_to_use = [];       % empty := use whole data set
+p_.classes_to_use = [10 11];  % a quick test case
+
+% Classification parameters
+p_.n_train = 25;              % # of objects to use for training
+p_.n_test = 25;               %   "   " testing
+p_.seed = 9999;
 
 % Parameters for SIFT
 p_.sift.size = 4;
-p_.sift.geom = [4 4 8];      % [nX nY nAngles]
+p_.sift.geom = [4 4 8];       % [nX nY nAngles]
 
 % Parameters for Gabor 
 p_.gabor.A = 16;
 p_.gabor.B = 8;
 
 % Parameters for maxfun pooling
-p_.mf_supp = [10 12 15:5:25];
+p_.mf_supp = [9 10 11 12 15 20];
+
 
 
 %% Helper functions
@@ -26,7 +37,7 @@ sift_xform = @(X) dsift2(X, 'step', 1, ...
                          'size', p_.sift.size, ...
                          'geometry', p_.sift.geom);
 
-gabor_xform = @(X) Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B);
+gabor_xform = @(X) abs(Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B));
 
 f_feat = {sift_xform, gabor_xform};
 
@@ -50,6 +61,7 @@ if exist(feat_file)
             mfilename, feat_file);
 else
     % load data and crop (if needed) to ensure dimension is even.
+    % "cropping" consists of dropping at most one row and column.
     data = load_image_dataset(p_.data_dir);
     for ii = 1:length(data.y)
         if mod(size(data.X{ii},1), 2) == 1
@@ -59,17 +71,16 @@ else
             data.X{ii} = data.X{ii}(:,1:end-1);
         end
     end
-   
-    
-    % TEMP TEMP TEMP - just for a small debugging experiment!!
-    f_feat = f_feat(1);
-    slice = 1:300;
-    data.y = data.y(slice);
-    data.files = data.files(slice);
-    data.X = data.X(slice);
-    % END TEMP TEMP TEMP
-    
-    
+
+    % reduce data set (optional)
+    if ~isempty(p_.classes_to_use)
+        slice = ismember(data.y, p_.classes_to_use);
+        data.y = data.y(slice);
+        data.files = data.files(slice);
+        data.X = data.X(slice);
+        fprintf('[%s]: reduced dataset has %d examples\n', mfilename, numel(data.y));
+    end
+
     % make sure features are all of same dimension
     feat_dim = prod(p_.sift.geom);
     assert(feat_dim == p_.gabor.A * p_.gabor.B);
@@ -101,24 +112,69 @@ else
         % provide status updates 
         elapsed = toc(timer) / 60;
         if elapsed > (2 + last_notify)
-            fprintf('[%s]: processed %d examples in %.2f min\n', mfilename, ii, elapsed);
+            fprintf('[%s]: processed %d examples (of %d) in %.2f min\n', mfilename, ii, length(data.y), elapsed);
             last_notify = elapsed;
         end
     end
 
-    save(feat_file, 'data', 'p_');
+    save(feat_file, 'data', 'p_', 'maxfun_sz');
 
-    fprintf('[%s]: maxfun support frequencies:\n', mfilename);
-    mf_stats = zeros(numel(p_.mf_supp),1);
-    for ii = 1:numel(mf_stats)
-        mf_stats(ii) = sum(maxfun_sz(:) == p_.mf_supp(ii));
-        fprintf('    %d : %d\n', p_.mf_supp(ii), mf_stats(ii));
+    % support size analysis
+    for ii = 1:size(maxfun_sz,3)
+        fprintf('[%s]: maxfun support frequencies for feature type %d:\n', mfilename, ii);
+        mf_stats = zeros(numel(p_.mf_supp),1);
+        tmp = maxfun_sz(:,:,ii);
+        for ii = 1:numel(mf_stats)
+            mf_stats(ii) = sum(tmp(:) == p_.mf_supp(ii));
+            fprintf('    %d : %d\n', p_.mf_supp(ii), mf_stats(ii));
+        end
     end
 end
 
 
 
 
-%% Analysis
+%% Classification
+
+rng(p_.seed, 'twister');
+
+load(feat_file);
+
+n_splits = 3;
+
+for split_id = 1:n_splits
+    fprintf('[%s]: Starting classification experiment %d (of %d)\n', ...
+            mfilename, split_id, n_splits);
+    
+    % note: we will use the exact same train/test items for each
+    %       feature/pooling pair.
+    [is_train, is_test] = select_n(data.y, p_.n_train, p_.n_test);
+    
+    y_train = data.y(is_train);
+    y_test = data.y(is_test);
+   
+    % allocate memory
+    if split_id == 1
+        y_hat = zeros(sum(is_test), size(data.Xf,3), size(data.Xf,4), n_splits);
+        y_true = zeros(sum(is_test), n_splits);
+    end
+    
+    y_true(:,split_id) = y_test;
+    
+    for ii = 1:size(data.Xf,3)
+        for jj = 1:size(data.Xf,4)
+            X_train = data.Xf(:,is_train,ii,jj);
+            X_test = data.Xf(:,is_test,ii,jj);
+            [y_hat_ij, metrics] = eval_svm(X_train', y_train, X_test', y_test);
+            y_hat(:,ii,jj,split_id) = y_hat_ij;
+        end
+    end
+end
+
+est_file = 'estimates.mat';
+save(est_file, 'data', 'p_', 'y_hat', 'y_true');
+
+
+[recall_sift, y_id_sift] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
 
 %load(feat_file);
