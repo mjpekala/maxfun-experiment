@@ -175,6 +175,8 @@ est_file = 'estimates.mat';
 save(est_file, 'data', 'p_', 'y_hat', 'y_true');
 
 % show recall rates
+fprintf('\n            SIFT    \n---------+----------------------------------------\n')
 [recall_sift, y_id_sift] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
+fprintf('\n            Gabor   \n---------+----------------------------------------\n')
 [recall_gabor, y_id_gabor] = recall_per_class(squeeze(y_hat(:, 2, :, :)), y_true);
 

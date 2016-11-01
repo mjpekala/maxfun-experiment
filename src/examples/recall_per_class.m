@@ -35,7 +35,7 @@ end
 for ii = 1:length(y_all)
     fprintf(' y = %3d |', y_all(ii));
     for jj = 1:n
-        fprintf(' %6.2f (%6.2f)|', mean(recall(ii,jj,:)), std(recall(ii,jj,:)));
+        fprintf(' %5.2f (%5.2f)|', mean(recall(ii,jj,:)), std(recall(ii,jj,:)));
     end
     fprintf('\n');
 end
