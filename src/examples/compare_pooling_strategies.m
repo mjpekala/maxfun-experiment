@@ -13,25 +13,28 @@ p_.data_dir = '../datasets/101_ObjectCategories';
 p_.sift.size = 4;
 p_.sift.geom = [4 4 8];      % [nX nY nAngles]
 
-sift_xform = @(X) dsift2(X, 'step', 1, ...
-                         'size', p_.sift.size, ...
-                         'geometry', p_.sift.geom);
-
 % Parameters for Gabor 
 p_.gabor.A = 16;
 p_.gabor.B = 8;
 
+% Parameters for maxfun pooling
+p_.mf_supp = [10 12 15:5:25];
+
+
+%% Helper functions
+sift_xform = @(X) dsift2(X, 'step', 1, ...
+                         'size', p_.sift.size, ...
+                         'geometry', p_.sift.geom);
+
 gabor_xform = @(X) Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B);
 
+f_feat = {sift_xform, gabor_xform};
 
-% pooling strategies to compare
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', 5:5:30) };
+           @(X) spatial_pool(X, 'maxfun', p_.mf_supp) };
 
-% feature strategies to compare
-f_feat = {sift_xform, gabor_xform};
 
 
 %% Generate features
@@ -87,7 +90,10 @@ else
             for kk = 1:length(f_pool)-1
                 data.Xf(:,ii,jj,kk) = f_pool{kk}(Xi);
             end
-            % TEMP - we handle maxfun separately for now (so can grab stats)
+            
+            % XXX - we handle maxfun separately for now (so can grab stats)
+            % If you don't care about the statistics, can fold this back into
+            % the above for loop.
             [data.Xf(:,ii,jj,kk), nfo] = f_pool{end}(Xi);
             maxfun_sz(:,ii,jj) = nfo.w;
         end
@@ -102,8 +108,12 @@ else
 
     save(feat_file, 'data', 'p_');
 
-    figure; hist(maxfun_sz(:));
-    title('distribution of maxfun pooling sizes');
+    fprintf('[%s]: maxfun support frequencies:\n', mfilename);
+    mf_stats = zeros(numel(p_.mf_supp),1);
+    for ii = 1:numel(mf_stats)
+        mf_stats(ii) = sum(maxfun_sz(:) == p_.mf_supp(ii));
+        fprintf('    %d : %d\n', p_.mf_supp(ii), mf_stats(ii));
+    end
 end
 
 
