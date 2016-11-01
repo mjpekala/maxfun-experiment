@@ -28,7 +28,7 @@ gabor_xform = @(X) Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B);
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', 15)};
+           @(X) spatial_pool(X, 'maxfun', 15:5:50) };
 
 % feature strategies to compare
 f_feat = {sift_xform, gabor_xform};
@@ -62,6 +62,7 @@ if ~exist(feat_file)
     data.Xf = zeros(feat_dim, length(data.y), length(f_feat), length(f_pool));
    
     % Process images one at a time (to conserve memory).
+    tic
     for ii = 1:length(data.y)
         fprintf('.');  % status indicator
         
@@ -73,6 +74,7 @@ if ~exist(feat_file)
         end
     end
     fprintf('\n');
+    toc
     
     save(feat_file, 'data', 'p_');
 end
