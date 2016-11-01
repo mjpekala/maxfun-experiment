@@ -28,11 +28,10 @@ gabor_xform = @(X) Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B);
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', 15:5:50) };
+           @(X) spatial_pool(X, 'maxfun', 5:5:30) };
 
 % feature strategies to compare
-%f_feat = {sift_xform, gabor_xform};
-f_feat = {sift_xform}; % TEMP TEMP TEMP
+f_feat = {sift_xform, gabor_xform};
 
 
 %% Generate features
@@ -42,7 +41,11 @@ f_feat = {sift_xform}; % TEMP TEMP TEMP
 %       this file and re-run.
 
 feat_file = 'pooled_features.mat';
-if ~exist(feat_file)
+
+if exist(feat_file)
+    fprintf('[%s]: feature file %s already exists; skipping to analysis\n', ...
+            mfilename, feat_file);
+else
     % load data and crop (if needed) to ensure dimension is even.
     data = load_image_dataset(p_.data_dir);
     for ii = 1:length(data.y)
@@ -53,6 +56,15 @@ if ~exist(feat_file)
             data.X{ii} = data.X{ii}(:,1:end-1);
         end
     end
+   
+    
+    % TEMP TEMP TEMP - just for a small debugging experiment!!
+    f_feat = f_feat(1);
+    slice = 1:300;
+    data.y = data.y(slice);
+    data.files = data.files(slice);
+    data.X = data.X(slice);
+    % END TEMP TEMP TEMP
     
     
     % make sure features are all of same dimension
@@ -64,8 +76,7 @@ if ~exist(feat_file)
     maxfun_sz = zeros(feat_dim, length(data.y), length(f_feat));
    
     % Process images one at a time (to conserve memory).
-    timer = tic;
-    last_notify = 0;
+    timer = tic;   last_notify = 0;
     
     for ii = 1:length(data.y)
         for jj = 1:length(f_feat)
@@ -80,17 +91,21 @@ if ~exist(feat_file)
             [data.Xf(:,ii,jj,kk), nfo] = f_pool{end}(Xi);
             maxfun_sz(:,ii,jj) = nfo.w;
         end
-       
+
         % provide status updates 
-        elapsed = toc(timer) / 60 / 2;
-        if elapsed > last_notify
-            fprintf('processed %d examples in %d min\n', ii, toc(timer)/60);
+        elapsed = toc(timer) / 60;
+        if elapsed > (2 + last_notify)
+            fprintf('processed %d examples in %.2f min\n', ii, elapsed);
             last_notify = elapsed;
         end
     end
-    
+
     save(feat_file, 'data', 'p_');
+
+    figure; hist(maxfun_sz(:));
+    title('distribution of maxfun pooling sizes');
 end
+
 
 
 
