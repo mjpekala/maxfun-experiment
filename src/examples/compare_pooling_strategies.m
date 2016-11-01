@@ -105,7 +105,7 @@ else
             % XXX - we handle maxfun separately for now (so can grab stats)
             % If you don't care about the statistics, can fold this back into
             % the above for loop.
-            [data.Xf(:,ii,jj,kk), nfo] = f_pool{end}(Xi);
+            [data.Xf(:,ii,jj,end), nfo] = f_pool{end}(Xi);
             maxfun_sz(:,ii,jj) = nfo.w;
         end
 
@@ -174,7 +174,7 @@ end
 est_file = 'estimates.mat';
 save(est_file, 'data', 'p_', 'y_hat', 'y_true');
 
-
+% show recall rates
 [recall_sift, y_id_sift] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
+[recall_gabor, y_id_gabor] = recall_per_class(squeeze(y_hat(:, 2, :, :)), y_true);
 
-%load(feat_file);
