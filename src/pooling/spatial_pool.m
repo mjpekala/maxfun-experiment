@@ -91,33 +91,37 @@ switch(lower(poolType))
     % pooling using the (uncentered) maximal function-inspired pooling
     X = reshape_noncommutative(X);  % (h, w, #_regions)
     X = abs(X);                     % def. MAXFUN
-    wMin = p(1);
-    wMax = min([size(X,1), size(X,2)]);
-    wVals = wMin:wMax;
+
+    % establish the set of window sizes to search over.
+    if numel(p) == 1
+        wMin = p(1);
+        wMax = min([size(X,1), size(X,2)]);
+        wVals = wMin:wMax;
+    else
+        wVals = p;
+    end
     
     to_col = @(x) x(:);
     
-    if numel(p) == 1
-        % Only a single parameter; no need to sweep over values
-        %
-        y = zeros(size(X,3),1);      % the maxfun value
+    y = zeros(size(X,3),1);      % the maxfun value
        
-        % these next three variables store information about the maxfun support.
-        c0 = zeros(size(X,3),1);     % column coordinate (upper left)
-        r0 = zeros(size(X,3),1);     % row coordinate (upper left)
-        w0 = zeros(size(X,3),1);     % the maxfun window width selected
+    % these next three variables store information about the maxfun support.
+    c0 = zeros(size(X,3),1);     % column coordinate (upper left)
+    r0 = zeros(size(X,3),1);     % row coordinate (upper left)
+    w0 = zeros(size(X,3),1);     % the maxfun window width selected
        
-        % process each 2d image separately
-        for ii = 1:size(X,3)
-            Z = all_windowed_sums(X(:,:,ii), wVals);
-            [y(ii), idx] = max(Z(:));
+    % process each 2d image separately
+    for ii = 1:size(X,3)
+        Z = all_windowed_sums(X(:,:,ii), wVals);
+        [y(ii), idx] = max(Z(:));
 
-            % only calculate if user requested diagnostics
-            if nargout > 1
-                [r0(ii), c0(ii), w0(ii)] = ind2sub(size(Z), idx);
-                w0(ii) = wVals(w0(ii));
-            end
+        % only calculate if user requested diagnostics
+        if nargout > 1
+            [r0(ii), c0(ii), w0(ii)] = ind2sub(size(Z), idx);
+            w0(ii) = wVals(w0(ii));
         end
+    end
+%{   
     else
         y = cellfun(@(v) zeros(size(X,3),1), num2cell(1:numel(p)), 'UniformOutput', 0);
 
@@ -132,7 +136,7 @@ switch(lower(poolType))
             end
         end
     end
-
+%}
     
   otherwise
     error('unsupported pooling type');
