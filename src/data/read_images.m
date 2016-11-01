@@ -11,13 +11,14 @@ function X = read_images(dirName, sz)
 %                       - OR -
 %                a single image file name
 %
-%     sz := the (height,width) to make each image (via resizing)
+%     sz := The (height,width) to make each image (via resizing).
+%           If empty, will not resize images.
 %
 %     X := a cell array contining each image.  This is a cell (as
-%                opposed to a tensor) in case the caller did not elect
-%                to resize the images.  If the caller only provided a
-%                single file name, then instead of a cell array X is
-%                just the image.
+%          opposed to a tensor) in case the caller did not elect
+%          to resize the images.  If the caller only provided a
+%          single file name, then instead of a cell array X is
+%          just the image.
 
 % mjp, april 2016
 
