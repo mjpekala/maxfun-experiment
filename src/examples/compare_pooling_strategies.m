@@ -15,7 +15,7 @@ if 0
     p_.classes_to_use = [10 11];  % a quick test case
 else
     p_.data_dir = '../datasets/curetgrey';
-    p_.classes_to_use = [4 8 10];  
+    p_.classes_to_use = [4 8 10 24 35];  
 end
 
 
@@ -43,9 +43,9 @@ f_feat = {sift_xform, gabor_xform};
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', [3:6]),
-           @(X) spatial_pool(X, 'maxfun', [10:15]),
-           @(X) spatial_pool(X, 'maxfun', [40:45]) };
+           @(X) spatial_pool(X, 'maxfun', [3:8]),
+           @(X) spatial_pool(X, 'maxfun', [15:20]),
+           @(X) spatial_pool(X, 'maxfun', [70:75]) };
 
 
 
