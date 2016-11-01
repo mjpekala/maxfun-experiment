@@ -72,11 +72,9 @@ for ii = 1:10
     X = randn(100,100);
     y = spatial_pool(X, 'fun', kVals);  % whole image pooling
     
-    assert(length(y) == length(kVals));
-    
-    for ii = 1:length(kVals)-1
-        assert(y{ii} >= y{ii+1});
-    end
+    % new behavior - now this just limits the number of pooling
+    % regions that one searches over.
+    assert(numel(y) == 1);
 end
 
 
