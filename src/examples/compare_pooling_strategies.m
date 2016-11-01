@@ -31,7 +31,8 @@ f_pool = { @(X) spatial_pool(X, 'max'),
            @(X) spatial_pool(X, 'maxfun', 15:5:50) };
 
 % feature strategies to compare
-f_feat = {sift_xform, gabor_xform};
+%f_feat = {sift_xform, gabor_xform};
+f_feat = {sift_xform}; % TEMP TEMP TEMP
 
 
 %% Generate features
@@ -60,21 +61,33 @@ if ~exist(feat_file)
 
     % preallocate space for the processed data
     data.Xf = zeros(feat_dim, length(data.y), length(f_feat), length(f_pool));
+    maxfun_sz = zeros(feat_dim, length(data.y), length(f_feat));
    
     % Process images one at a time (to conserve memory).
-    tic
+    timer = tic;
+    last_notify = 0;
+    
     for ii = 1:length(data.y)
-        fprintf('.');  % status indicator
-        
         for jj = 1:length(f_feat)
+            % feature extraction just 1x for each object
             Xi = f_feat{jj}(data.X{ii});
-            for kk = 1:length(f_pool)
+
+            % do pooling
+            for kk = 1:length(f_pool)-1
                 data.Xf(:,ii,jj,kk) = f_pool{kk}(Xi);
             end
+            % TEMP - we handle maxfun separately for now (so can grab stats)
+            [data.Xf(:,ii,jj,kk), nfo] = f_pool{end}(Xi);
+            maxfun_sz(:,ii,jj) = nfo.w;
+        end
+       
+        % provide status updates 
+        elapsed = toc(timer) / 60 / 2;
+        if elapsed > last_notify
+            fprintf('processed %d examples in %d min\n', ii, toc(timer)/60);
+            last_notify = elapsed;
         end
     end
-    fprintf('\n');
-    toc
     
     save(feat_file, 'data', 'p_');
 end
