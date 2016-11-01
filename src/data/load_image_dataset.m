@@ -18,13 +18,14 @@ function data = load_image_dataset(imageDir, sz)
 %
 %      sz        : A pair [height, width] indicating how the
 %                  raw images should be resized.  If sz is
-%                  empty, the data will not be loaded (can be
-%                  useful if it will to too memory intensive to
-%                  load the entire data set at once).
+%                  empty, the data will be returned as a cell 
+%                  array instead of a tensor.
 %
 
 % mjp, april 2016
 
+
+if nargin < 2, sz = []; end
 
 
 % Get a list of all classes in the dataset.
@@ -80,8 +81,12 @@ end
 
 fprintf('[%s]: Data set has %d objects and %d classes\n', mfilename, length(data.y), length(yAll));
 
+
+fprintf('[%s]: reading images...please wait...\n', mfilename);
+data.X = cellfun(@(fn) read_images(fn, sz), data.files, 'UniformOutput', 0);
+
+% if we are sure everything is the same shape, collapse into a tensor.
 if ~isempty(sz)
-    fprintf('[%s]: reading images...please wait...\n', mfilename);
-    data.X = cellfun(@(fn) read_images(fn, sz), data.files, 'UniformOutput', 0);
     data.X = cat(3, data.X{:});
 end
+
