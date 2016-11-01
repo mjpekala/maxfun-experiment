@@ -95,7 +95,7 @@ else
         % provide status updates 
         elapsed = toc(timer) / 60;
         if elapsed > (2 + last_notify)
-            fprintf('processed %d examples in %.2f min\n', ii, elapsed);
+            fprintf('[%s]: processed %d examples in %.2f min\n', mfilename, ii, elapsed);
             last_notify = elapsed;
         end
     end
