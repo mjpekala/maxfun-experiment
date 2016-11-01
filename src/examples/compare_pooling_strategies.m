@@ -9,15 +9,15 @@
 %% Experiment Parameters
 
 % Dataset parameters
-p_.data_dir = '../datasets/101_ObjectCategories';
+if 0
+    p_.data_dir = '../datasets/101_ObjectCategories';
+    p_.classes_to_use = [];       % empty := use whole data set
+    p_.classes_to_use = [10 11];  % a quick test case
+else
+    p_.data_dir = '../datasets/curetgrey';
+    p_.classes_to_use = [4 8 10];  
+end
 
-p_.classes_to_use = [];       % empty := use whole data set
-p_.classes_to_use = [10 11];  % a quick test case
-
-% Classification parameters
-p_.n_train = 25;              % # of objects to use for training
-p_.n_test = 25;               %   "   " testing
-p_.seed = 9999;
 
 % Parameters for SIFT
 p_.sift.size = 4;
@@ -27,9 +27,8 @@ p_.sift.geom = [4 4 8];       % [nX nY nAngles]
 p_.gabor.A = 16;
 p_.gabor.B = 8;
 
-% Parameters for maxfun pooling
-p_.mf_supp = [9 10 11 12 15 20];
-
+% Parameters for maxfun
+% (hardcoded - see f_pool below)
 
 
 %% Helper functions
@@ -44,7 +43,9 @@ f_feat = {sift_xform, gabor_xform};
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', p_.mf_supp) };
+           @(X) spatial_pool(X, 'maxfun', [3:6]),
+           @(X) spatial_pool(X, 'maxfun', [10:15]),
+           @(X) spatial_pool(X, 'maxfun', [40:45]) };
 
 
 
@@ -96,7 +97,7 @@ else
         for jj = 1:length(f_feat)
             % feature extraction just 1x for each object
             Xi = f_feat{jj}(data.X{ii});
-
+            
             % do pooling
             for kk = 1:length(f_pool)-1
                 data.Xf(:,ii,jj,kk) = f_pool{kk}(Xi);
@@ -120,15 +121,15 @@ else
     save(feat_file, 'data', 'p_', 'maxfun_sz');
 
     % support size analysis
-    for ii = 1:size(maxfun_sz,3)
-        fprintf('[%s]: maxfun support frequencies for feature type %d:\n', mfilename, ii);
-        mf_stats = zeros(numel(p_.mf_supp),1);
-        tmp = maxfun_sz(:,:,ii);
-        for ii = 1:numel(mf_stats)
-            mf_stats(ii) = sum(tmp(:) == p_.mf_supp(ii));
-            fprintf('    %d : %d\n', p_.mf_supp(ii), mf_stats(ii));
-        end
-    end
+    %for ii = 1:size(maxfun_sz,3)
+    %    fprintf('[%s]: maxfun support frequencies for feature type %d:\n', mfilename, ii);
+    %    mf_stats = zeros(numel(p_.mf_supp),1);
+    %    tmp = maxfun_sz(:,:,ii);
+    %    for ii = 1:numel(mf_stats)
+    %        mf_stats(ii) = sum(tmp(:) == p_.mf_supp(ii));
+    %        fprintf('    %d : %d\n', p_.mf_supp(ii), mf_stats(ii));
+    %    end
+    %end
 end
 
 
@@ -136,11 +137,16 @@ end
 
 %% Classification
 
-rng(p_.seed, 'twister');
+% Classification parameters
+n_train = 30;              % # of objects to use for training
+n_test = 30;               %   "   " testing
+n_splits = 10;
 
+rng(9999, 'twister');
+
+% load previously computed features
 load(feat_file);
 
-n_splits = 3;
 
 for split_id = 1:n_splits
     fprintf('[%s]: Starting classification experiment %d (of %d)\n', ...
@@ -148,7 +154,7 @@ for split_id = 1:n_splits
     
     % note: we will use the exact same train/test items for each
     %       feature/pooling pair.
-    [is_train, is_test] = select_n(data.y, p_.n_train, p_.n_test);
+    [is_train, is_test] = select_n(data.y, n_train, n_test);
     
     y_train = data.y(is_train);
     y_test = data.y(is_test);
