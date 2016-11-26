@@ -22,11 +22,13 @@
 
 % Dataset parameters
 if 1
+    p_.desc = 'caltech101_small'
     p_.data_dir = '../datasets/101_ObjectCategories';
     p_.classes_to_use = [];       % empty := use whole data set
     p_.classes_to_use = [10 11];  % a quick test case
     p_.classes_to_use = 1:10;     % small multi-class
 else
+    p_.desc = 'CURET';
     p_.data_dir = '../datasets/curetgrey';
     p_.classes_to_use = [4 8 10 24 35];  
 end
@@ -73,7 +75,7 @@ f_pool = { @(X) spatial_pool(X, 'max'),
 %       have not changed. If you do change parameters, delete
 %       the preprocessed data file and re-run the script.
 
-feat_file = 'pooled_features.mat';
+feat_file = [p_.desc  '_features.mat'];
 
 if exist(feat_file)
     fprintf('[%s]: feature file %s already exists; skipping to analysis\n', ...
@@ -198,7 +200,7 @@ for split_id = 1:n_splits
     end
 end
 
-est_file = 'estimates.mat';
+est_file = [p_.desc '_estimates.mat'];
 save(est_file, 'data', 'p_', 'y_hat', 'y_true');
 
 % show recall rates
