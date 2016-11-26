@@ -13,7 +13,8 @@
 %  The assumption here is that the dataset of interest consists of
 %  images stored as separate files in subdirectories and that the
 %  subdirectory name represents the class label.  For example, the
-%  Caltech-101 dataset follows this convention.
+%  Caltech-101 dataset follows this convention.  See
+%  load_image_dataset() for more details.
 
 % mjp, oct 2016
 
@@ -22,7 +23,7 @@
 
 % Dataset parameters
 if 1
-    p_.desc = 'caltech101_small'
+    p_.desc = 'caltech101_small';
     p_.data_dir = '../datasets/101_ObjectCategories';
     p_.classes_to_use = [];       % empty := use whole data set
     p_.classes_to_use = [10 11];  % a quick test case
@@ -55,7 +56,7 @@ sift_xform = @(X) dsift2(X, 'step', 1, ...
 
 gabor_xform = @(X) abs(Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B));
 
-% the feature transforms we consider are encoded as funciton
+% the feature transforms we consider are encoded as function
 % handles in a cell array.
 f_feat = {sift_xform, gabor_xform};
 
@@ -63,9 +64,9 @@ f_feat = {sift_xform, gabor_xform};
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
-           @(X) spatial_pool(X, 'maxfun', [3:8]),
-           @(X) spatial_pool(X, 'maxfun', [15:20]),
-           @(X) spatial_pool(X, 'maxfun', [70:75]) };
+           @(X) spatial_pool(X, 'maxfun', [3:6]),
+           @(X) spatial_pool(X, 'maxfun', [15:18]),
+           @(X) spatial_pool(X, 'maxfun', [70:73]) };
 
 
 
@@ -81,6 +82,8 @@ if exist(feat_file)
     fprintf('[%s]: feature file %s already exists; skipping to analysis\n', ...
             mfilename, feat_file);
 else
+    p_   % show parameters to user
+    
     % First, make sure Gabor and SIFT will have the same # of
     % features (to facilitate fair comparison)
     n_feats = prod(p_.sift.geom);
@@ -107,14 +110,17 @@ else
         data.X = data.X(slice);
     end
     
-    fprintf('[info]: dataset has %d examples and %d classes\n', length(data.y), length(unique(data.y)));
 
     % preallocate space for the processed data
     data.Xf = zeros(n_feats, length(data.y), length(f_feat), length(f_pool));  
-    maxfun_sz = zeros(n_feats, length(data.y), length(f_feat));  % support size used by maxfun
+    maxfun_sz = -1*ones(n_feats, length(data.y), length(f_feat));  % support size used by maxfun
    
+    fprintf('[info]: After preprocesing data set has %d examples and %d classes\n', length(data.y), length(unique(data.y)));
+    fprintf('[info]: Feature dimension will be: %d\n', n_feats);
+    
+    
     % Process images one at a time (to conserve memory).
-    timer = tic;   last_notify = 0;
+    timer = tic;   last_notify = -Inf;
     
     for ii = 1:length(data.y)
         for jj = 1:length(f_feat)
@@ -129,8 +135,8 @@ else
             % Special case processing for maxfun; if you don't care about this
             % analysis you can turn this code off (does not impact classification 
             % results in any way)
-            [~, nfo] = spatial_pool(Xi, 'maxfun', [3:8]);
-            maxfun_sz(:,ii,jj) = nfo.w;
+            %[~, nfo] = spatial_pool(Xi, 'maxfun', [3:8]);
+            %maxfun_sz(:,ii,jj) = nfo.w;
         end
 
         % provide status updates 
@@ -141,7 +147,8 @@ else
         end
     end
 
-    save(feat_file, 'data', 'p_', 'maxfun_sz');
+    runtime = toc(timer)
+    save(feat_file, 'data', 'p_', 'maxfun_sz', 'runtime');
 
     % support size analysis
     %for ii = 1:size(maxfun_sz,3)
