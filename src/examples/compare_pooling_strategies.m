@@ -1,4 +1,4 @@
-% Compares various pooling strategies.
+% Compares various "whole image" pooling strategies.
 %
 %  In this script we combine feature generation and pooling into
 %  a single operation that we apply to all examples in a data set.
@@ -9,7 +9,7 @@
 %   - this makes it very difficult to do any kind of hyperparameter
 %     optimization for pooling functions (e.g. choosing p for Lp
 %     norms or minimum support sizes for maxfun).
-%  
+% 
 %  The assumption here is that the dataset of interest consists of
 %  images stored as separate files in subdirectories and that the
 %  subdirectory name represents the class label.  For example, the
@@ -25,13 +25,12 @@
 if 1
     p_.desc = 'caltech101_small';
     p_.data_dir = '../datasets/101_ObjectCategories';
-    p_.classes_to_use = [];       % empty := use whole data set
-    p_.classes_to_use = [10 11];  % a quick test case
-    p_.classes_to_use = 1:10;     % small multi-class
+    p_.classes_to_use = [];    
 else
     p_.desc = 'CURET';
     p_.data_dir = '../datasets/curetgrey';
-    p_.classes_to_use = [4 8 10 24 35];  
+    %p_.classes_to_use = [4 8 10 24 35];  
+    p_.classes_to_use = [4 8];
 end
 
 
@@ -115,8 +114,8 @@ else
     data.Xf = zeros(n_feats, length(data.y), length(f_feat), length(f_pool));  
     maxfun_sz = -1*ones(n_feats, length(data.y), length(f_feat));  % support size used by maxfun
    
-    fprintf('[info]: After preprocesing data set has %d examples and %d classes\n', length(data.y), length(unique(data.y)));
-    fprintf('[info]: Feature dimension will be: %d\n', n_feats);
+    fprintf('[%s]: After preprocesing data set has %d examples and %d classes\n', mfilename, length(data.y), length(unique(data.y)));
+    fprintf('[%s]: Feature dimension will be: %d\n', mfilename, n_feats);
     
     
     % Process images one at a time (to conserve memory).
@@ -147,8 +146,9 @@ else
         end
     end
 
-    runtime = toc(timer)
+    runtime = toc(timer);
     save(feat_file, 'data', 'p_', 'maxfun_sz', 'runtime');
+    fprintf('[%s]: done.  Took %d minutes total\n', mfilename, runtime);
 
     % support size analysis
     %for ii = 1:size(maxfun_sz,3)
@@ -168,9 +168,9 @@ end
 %% Classification
 
 % Classification parameters
-n_train = 30;              % # of objects to use for training
-n_test = 30;               %   "   " testing
-n_splits = 10;
+n_train = 30;              % # of objects to use for training from each class
+n_test = 30;               %   "   "  testing  "  "
+n_splits = 10;             % # of train/test splits to perform
 
 rng(9999, 'twister');
 
@@ -191,8 +191,8 @@ for split_id = 1:n_splits
    
     % allocate memory
     if split_id == 1
-        y_hat = zeros(n_test, size(data.Xf,3), size(data.Xf,4), n_splits);
-        y_true = zeros(n_test, n_splits);
+        y_hat = zeros(sum(is_test), size(data.Xf,3), size(data.Xf,4), n_splits);
+        y_true = zeros(sum(is_test), n_splits);
     end
     
     y_true(:,split_id) = y_test;
@@ -211,8 +211,8 @@ est_file = [p_.desc '_estimates.mat'];
 save(est_file, 'data', 'p_', 'y_hat', 'y_true');
 
 % show recall rates
-fprintf('\n            SIFT    \n---------+----------------------------------------\n')
-[recall_sift, y_id_sift] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
-fprintf('\n            Gabor   \n---------+----------------------------------------\n')
-[recall_gabor, y_id_gabor] = recall_per_class(squeeze(y_hat(:, 2, :, :)), y_true);
+for ii = 1:size(y_hat, 2)
+    fprintf('\n            Feature Type %d    \n---------+---------------------------------------------------------------\n', ii)
+    [recall, y_id] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
+end
 
