@@ -1,7 +1,19 @@
 % Compares various pooling strategies.
 %
-%  Note: be sure to run setup.m before calling this script.
+%  In this script we combine feature generation and pooling into
+%  a single operation that we apply to all examples in a data set.
+%  This approach has pros and cons:
+%   + there are no issues with memory since we pool the (relatively
+%     large) feature tensors immediately.  This also means we can
+%     avoid downsampling.
+%   - this makes it very difficult to do any kind of hyperparameter
+%     optimization for pooling functions (e.g. choosing p for Lp
+%     norms or minimum support sizes for maxfun).
 %  
+%  The assumption here is that the dataset of interest consists of
+%  images stored as separate files in subdirectories and that the
+%  subdirectory name represents the class label.  For example, the
+%  Caltech-101 dataset follows this convention.
 
 % mjp, oct 2016
 
@@ -33,14 +45,19 @@ p_.gabor.B = 8;
 
 
 %% Helper functions
+
+% This is dense sift with no downsampling (step = 1)
 sift_xform = @(X) dsift2(X, 'step', 1, ...
                          'size', p_.sift.size, ...
                          'geometry', p_.sift.geom);
 
 gabor_xform = @(X) abs(Gabor_transform_ns(X, p_.gabor.A, p_.gabor.B));
 
+% the feature transforms we consider are encoded as funciton
+% handles in a cell array.
 f_feat = {sift_xform, gabor_xform};
 
+% pooling functions are similarly stored in a cell array
 f_pool = { @(X) spatial_pool(X, 'max'), 
            @(X) spatial_pool(X, 'avg'),
            @(X) spatial_pool(X, 'pnorm', 2), 
@@ -54,7 +71,7 @@ f_pool = { @(X) spatial_pool(X, 'max'),
 
 % Note: this only needs to be done once, assuming the parameters
 %       have not changed. If you do change parameters, delete
-%       this file and re-run.
+%       the preprocessed data file and re-run the script.
 
 feat_file = 'pooled_features.mat';
 
@@ -62,8 +79,14 @@ if exist(feat_file)
     fprintf('[%s]: feature file %s already exists; skipping to analysis\n', ...
             mfilename, feat_file);
 else
+    % First, make sure Gabor and SIFT will have the same # of
+    % features (to facilitate fair comparison)
+    n_feats = prod(p_.sift.geom);
+    assert(n_feats == p_.gabor.A * p_.gabor.B);
+    
     % load data and crop (if needed) to ensure dimension is even.
     % "cropping" consists of dropping at most one row and column.
+    % (at one point this was a requirement of the Gabor codes)
     data = load_image_dataset(p_.data_dir);
     for ii = 1:length(data.y)
         if mod(size(data.X{ii},1), 2) == 1
@@ -74,40 +97,37 @@ else
         end
     end
 
-    % reduce data set (optional)
+    % distill down to the set of classes of interest (optional)
     if ~isempty(p_.classes_to_use)
         slice = ismember(data.y, p_.classes_to_use);
         data.y = data.y(slice);
         data.files = data.files(slice);
         data.X = data.X(slice);
-        fprintf('[%s]: reduced dataset has %d examples\n', mfilename, numel(data.y));
     end
-
-    % make sure features are all of same dimension
-    feat_dim = prod(p_.sift.geom);
-    assert(feat_dim == p_.gabor.A * p_.gabor.B);
+    
+    fprintf('[info]: dataset has %d examples and %d classes\n', length(data.y), length(unique(data.y)));
 
     % preallocate space for the processed data
-    data.Xf = zeros(feat_dim, length(data.y), length(f_feat), length(f_pool));
-    maxfun_sz = zeros(feat_dim, length(data.y), length(f_feat));
+    data.Xf = zeros(n_feats, length(data.y), length(f_feat), length(f_pool));  
+    maxfun_sz = zeros(n_feats, length(data.y), length(f_feat));  % support size used by maxfun
    
     % Process images one at a time (to conserve memory).
     timer = tic;   last_notify = 0;
     
     for ii = 1:length(data.y)
         for jj = 1:length(f_feat)
-            % feature extraction just 1x for each object
+            % feature extraction 
             Xi = f_feat{jj}(data.X{ii});
             
-            % do pooling
-            for kk = 1:length(f_pool)-1
+            % pooling
+            for kk = 1:length(f_pool)
                 data.Xf(:,ii,jj,kk) = f_pool{kk}(Xi);
             end
-            
-            % XXX - we handle maxfun separately for now (so can grab stats)
-            % If you don't care about the statistics, can fold this back into
-            % the above for loop.
-            [data.Xf(:,ii,jj,end), nfo] = f_pool{end}(Xi);
+           
+            % Special case processing for maxfun; if you don't care about this
+            % analysis you can turn this code off (does not impact classification 
+            % results in any way)
+            [~, nfo] = spatial_pool(Xi, 'maxfun', [3:8]);
             maxfun_sz(:,ii,jj) = nfo.w;
         end
 
@@ -162,8 +182,8 @@ for split_id = 1:n_splits
    
     % allocate memory
     if split_id == 1
-        y_hat = zeros(sum(is_test), size(data.Xf,3), size(data.Xf,4), n_splits);
-        y_true = zeros(sum(is_test), n_splits);
+        y_hat = zeros(n_test, size(data.Xf,3), size(data.Xf,4), n_splits);
+        y_true = zeros(n_test, n_splits);
     end
     
     y_true(:,split_id) = y_test;
