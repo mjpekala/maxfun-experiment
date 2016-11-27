@@ -194,6 +194,13 @@ for split_id = 1:n_splits
     if split_id == 1
         y_hat = zeros(sum(is_test), size(data.Xf,3), size(data.Xf,4), n_splits);
         y_true = zeros(sum(is_test), n_splits);
+        
+        % some diagnostics (related to data set sizes)
+        y_all = unique(data.y)
+        fprintf('  y    |  #train  |  #test\n-------+----------+-----------\n')
+        for ii = 1:length(y_all)
+            fprintf('  %3d  |   %4d   |   %4d\n', y_all(ii), sum(data.y(is_train) == y_all(ii)), sum(data.y(is_test) == y_all(ii)));
+        end
     end
     
     y_true(:,split_id) = y_test;
