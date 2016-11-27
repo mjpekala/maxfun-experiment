@@ -181,15 +181,16 @@ load(feat_file);
 for split_id = 1:n_splits
     fprintf('[%s]: Starting classification experiment %d (of %d)\n', ...
             mfilename, split_id, n_splits);
-    
-    % note: we will use the exact same train/test items for each
-    %       feature/pooling pair.
+  
+    % generate a train/test split 
+    % (will be used for all feature/pooling pairs)
     [is_train, is_test] = select_n(data.y, n_train, n_test);
+    assert(sum(is_train & is_test) == 0);
     
     y_train = data.y(is_train);
     y_test = data.y(is_test);
    
-    % allocate memory
+    % allocate memory (now that test set sizes are known)
     if split_id == 1
         y_hat = zeros(sum(is_test), size(data.Xf,3), size(data.Xf,4), n_splits);
         y_true = zeros(sum(is_test), n_splits);
@@ -208,11 +209,11 @@ for split_id = 1:n_splits
 end
 
 est_file = [p_.desc '_estimates.mat'];
-save(est_file, 'data', 'p_', 'y_hat', 'y_true');
+save(est_file, 'data', 'p_', 'y_hat', 'y_true', '-v7.3');
 
 % show recall rates
 for ii = 1:size(y_hat, 2)
     fprintf('\n            Feature Type %d    \n---------+---------------------------------------------------------------\n', ii)
-    [recall, y_id] = recall_per_class(squeeze(y_hat(:, 1, :, :)), y_true);
+    [recall, y_id] = recall_per_class(squeeze(y_hat(:, ii, :, :)), y_true);
 end
 
