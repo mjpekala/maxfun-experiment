@@ -147,7 +147,7 @@ else
     end
 
     runtime = toc(timer);
-    save(feat_file, 'data', 'p_', 'maxfun_sz', 'runtime');
+    save(feat_file, 'data', 'p_', 'maxfun_sz', 'runtime', '-v7.3');
     fprintf('[%s]: done.  Took %d minutes total\n', mfilename, runtime);
 
     % support size analysis
