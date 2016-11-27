@@ -197,9 +197,9 @@ for split_id = 1:n_splits
         
         % some diagnostics (related to data set sizes)
         y_all = unique(data.y)
-        fprintf('  y    |  #train  |  #test\n-------+----------+-----------\n')
+        fprintf('  y    |  #train  |  #test  |  # in dataset \n-------+----------+---------+-----------------\n')
         for ii = 1:length(y_all)
-            fprintf('  %3d  |   %4d   |   %4d\n', y_all(ii), sum(data.y(is_train) == y_all(ii)), sum(data.y(is_test) == y_all(ii)));
+            fprintf('  %3d  |   %4d   |   %4d  |  %4d\n', y_all(ii), sum(data.y(is_train) == y_all(ii)), sum(data.y(is_test) == y_all(ii)), sum(data.y == y_all(ii)));
         end
     end
     
