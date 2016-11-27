@@ -40,6 +40,7 @@ The pooling strategies compared are (in order of appearance as columns in the be
 
 The tables below report per-class recall rates (averaged over 10 train/test splits) and \hl{highlight} cases where one pooling algorithm outperforms the others on the same feature type by at least one standard deviation (approximately).
 We observe that in cases where there are discrepancies between maximum and average pooling there are often corresponding discrepancies between the different maxfun pooling sizes (as one might expect).
+With 101 classes one needs to be careful drawing conclusions (e.g. due to multiple comparison effects).
 
 \begin{Verbatim}[fontsize=\small, commandchars=\\\{\}]
             Feature Type 1 (Dense SIFT)
@@ -134,11 +135,11 @@ We observe that in cases where there are discrepancies between maximum and avera
  y =  88 |  4.14 ( 4.54)|  7.59 ( 4.54)|  3.10 ( 4.44)|  5.52 ( 3.71)| 13.79 ( 6.50)| 22.76 (11.05)|
  y =  89 | 43.33 ( 4.97)| 34.00 ( 7.34)| 36.67 ( 7.70)| 39.67 ( 4.83)| 38.33 ( 7.41)| 24.00 ( 6.25)|
  y =  90 |  0.00 ( 0.00)|  0.00 ( 0.00)|  0.00 ( 0.00)|  0.00 ( 0.00)|  2.00 ( 6.32)|  8.00 (10.33)|
- y =  91 |  2.67 ( 3.06)|  4.67 ( 5.26)|  3.67 ( 2.92)|  2.67 ( 4.10)|  5.00 ( 4.51)| 15.33 ( 6.32)|
+ y =  91 |  2.67 ( 3.06)|  4.67 ( 5.26)|  3.67 ( 2.92)|  2.67 ( 4.10)|  5.00 ( 4.51)| \hl{15.33 ( 6.32)}|
  y =  92 | 12.63 ( 6.66)| 13.16 ( 6.68)|  2.11 ( 3.68)| 14.74 ( 7.77)| 16.84 ( 4.84)| 20.00 ( 8.52)|
- y =  93 | 63.33 ( 7.37)| 77.33 (10.52)| 42.67 ( 6.81)| 68.00 ( 7.89)| 87.33 ( 4.66)| 79.67 ( 6.75)|
+ y =  93 | 63.33 ( 7.37)| 77.33 (10.52)| 42.67 ( 6.81)| 68.00 ( 7.89)| \hl{87.33 ( 4.66)}| 79.67 ( 6.75)|
  y =  94 | 13.00 ( 3.31)| 14.33 ( 4.98)| 13.00 ( 5.97)| 12.67 ( 4.66)| 12.33 ( 5.22)| 11.33 ( 4.77)|
- y =  95 |  6.00 ( 6.05)| 20.67 ( 8.13)| 10.33 ( 7.45)|  6.00 ( 4.10)| 18.67 ( 7.89)| 33.33 ( 7.54)|
+ y =  95 |  6.00 ( 6.05)| 20.67 ( 8.13)| 10.33 ( 7.45)|  6.00 ( 4.10)| 18.67 ( 7.89)|  \hl{33.33 ( 7.54)}|
  y =  96 | 18.57 (13.55)| 15.71 (10.54)|  7.14 ( 7.53)| 12.86 ( 8.11)| 15.71 (17.10)| 18.57 (11.76)|
  y =  97 |  5.86 ( 3.27)|  9.66 ( 5.82)| 15.17 ( 4.65)| 10.69 ( 7.53)|  4.48 ( 4.00)| 10.00 ( 6.18)|
  y =  98 |  0.00 ( 0.00)|  0.00 ( 0.00)|  2.50 ( 7.91)|  0.00 ( 0.00)|  2.50 ( 7.91)| 10.00 (12.91)|
