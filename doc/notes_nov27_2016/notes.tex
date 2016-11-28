@@ -35,15 +35,15 @@ The pooling strategies compared are (the order below indicates the corresponding
 \item max
 \item avg
 \item 2-norm
-\item maxfun [3:6]       (note: similar to max pooling due to small support size)
+\item maxfun [3:6]\footnote{this notation means maxfun searched over windows of dimension 3,4,5 and 6.} (note: similar to max pooling due to relatively small support size)
 \item maxfun [15:18]
-\item maxfun [70:73]  (note: similar to avg pooling due to large support size)
+\item maxfun [70:73]  (note: similar to avg pooling due to relatively large support size)
 \end{enumerate}
 
 
-The tables below report per-class recall rates (averaged over 10 train/test splits) and \hl{highlight} cases where one pooling algorithm outperforms the others on the same feature type by at least one standard deviation (approximately).
+The tables below report per-class recall rates (averaged over 10 train/test splits) and \hl{highlight} cases where one pooling algorithm outperforms the others on the same feature type by at least one standard deviation\footnote{only approximately; I also highlighted some cases that were close and/or interesting.  Do not take the highlighting too seriously.}.
 For the SIFT features we observe that in cases where there are discrepancies between maximum and average pooling there are often corresponding discrepancies between the different maxfun pooling sizes (as one might expect).
-For Gabor features, we observe relatively strong performance from the average and $||\cdot||_2$ pooling.
+For Gabor features, we observe relatively strong performance from the average and 2-norm pooling.
 With 101 classes one needs to be careful drawing conclusions (e.g. due to multiple comparison effects).
 
 
