@@ -22,8 +22,8 @@ p.feature_type = 'dyadic-edge';
 
 %p.window_size = [64,64];  p.stride = 32;   % 74-65
 %p.window_size = [32,32];   p.stride = 32;  % 77-75 (non-monotonic)
-%p.window_size = [28,28];   p.stride = 28;  % 79-76
-p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
+p.window_size = [28,28];   p.stride = 28;  % 79-76
+%p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
 
 p.maxfun_supp = [2,6];
 
@@ -127,7 +127,7 @@ feats.idx = randperm(n_images);
 tic
 last_chatter = -Inf;
 
-nontrivial_maxfun = logical(zeros(1,n_images));  % track whether maxfun support was ever greater than the min
+w_maxfun = NaN*ones(n_feats,n_images);  % track maxfun support size (for debugging/analysis)
 
 
 for ii = 1:n_images
@@ -144,8 +144,7 @@ for ii = 1:n_images
     feats.avgpool(:,ii) = avg_pooling(x_fw);
     feats.y(ii) = data.y(orig_idx);
     
-    [feats.maxfun(:,ii), w, loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
-    if any(w > p.maxfun_supp(1)), nontrivial_maxfun(ii) = true; end
+    [feats.maxfun(:,ii), w_maxfun(:,ii), loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
     
     % sanity checks
     assert(all(feats.maxpool(:,ii) >= feats.avgpool(:,ii)));
