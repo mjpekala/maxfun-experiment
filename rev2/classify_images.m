@@ -60,11 +60,11 @@ for ii = 1:length(pc.alpha_all)
 
     tic
     model = build_classifier(Xi', y);
-    fprintf('\n[%s]: took %0.2f seconds to fit SVMs for %s:%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
-
     y_hat = kfoldPredict(model);
     acc = sum(y(:) == y_hat(:)) / length(y_hat);
-    fprintf('[%s]: classification accuracy with %s:%0.2f is %0.3f\n', mfilename, pc.feature_type, alpha_i, acc);
+    
+    fprintf('[%s]: took %0.2f seconds to fit and predict for %s:%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
+    fprintf('[%s]: classification accuracy is %0.3f\n\n', mfilename, acc);
 
     % store results for later analysis
     if ii == 1
