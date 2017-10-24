@@ -25,6 +25,7 @@ p.feature_type = 'dyadic-edge';
 %p.window_size = [28,28];   p.stride = 28;  % 79-76
 p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
 
+p.maxfun_supp = [2,6];
 
 
 switch(lower(p.feature_type))
@@ -126,23 +127,39 @@ feats.idx = randperm(n_images);
 tic
 last_chatter = -Inf;
 
+nontrivial_maxfun = logical(zeros(1,n_images));  % track whether maxfun support was ever greater than the min
+
 
 for ii = 1:n_images
     orig_idx = feats.idx(ii);  % index into original data set order
-    
+   
+    % feature extraction
     x_i = data.X(:,:,:,orig_idx);                              % raw image
     x_f = featurize(x_i);                                      % filtered image 
     x_f = abs(x_f);                                            % NOTE: we always take modulus for now...
     x_fw = extract_all_windows(x_f, p.window_size, p.stride);  % filtered and windowed
-    
+   
+    % pooling
     feats.maxpool(:,ii) = max_pooling(x_fw);
     feats.avgpool(:,ii) = avg_pooling(x_fw);
-    feats.maxfun(:,ii) = NaN; % TODO: implement maxfun
     feats.y(ii) = data.y(orig_idx);
+    
+    [feats.maxfun(:,ii), w, loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
+    if any(w > p.maxfun_supp(1)), nontrivial_maxfun(ii) = true; end
     
     % sanity checks
     assert(all(feats.maxpool(:,ii) >= feats.avgpool(:,ii)));
+
+    % status update
+    runtime = toc;
+    if runtime - last_chatter > 30
+        fprintf('[%s] processed %d images (of %d) in %0.2f seconds (%s features)\n', ...
+                mfilename, ii, n_images, runtime, p.feature_type);
+        last_chatter = runtime;
+    end
+   
     
+    % (optional) visualization)
     if ii == 1
         figure('Position', [100, 100, 900, 300]);
         subplot(1,3,1);
@@ -157,15 +174,6 @@ for ii = 1:n_images
             figure; imagesc(x_f(:,:,k));
             title(sprintf('%s : feature index %d', p.feature_type, k));
         end
-        
-    end
-    
-    % status update
-    runtime = toc;
-    if runtime - last_chatter > 30
-        fprintf('[%s] processed %d images (of %d) in %0.2f seconds (%s features)\n', ...
-                mfilename, ii, n_images, runtime, p.feature_type);
-        last_chatter = runtime;
     end
 end
 
