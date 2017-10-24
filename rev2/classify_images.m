@@ -44,6 +44,8 @@ for ii = 1:length(pc.alpha_all)
     % features used are somewhere between max and avg
     Xi = alpha_i * X_max + (1 - alpha_i) * X_avg;
 
+    
+    %% SVM classifier
     %  XXX: may want to check to make sure SVM defaults are reasonable...
     tic
     model = fitcecoc(Xi', y, 'Kfold', 5);
@@ -51,7 +53,7 @@ for ii = 1:length(pc.alpha_all)
 
     y_hat = kfoldPredict(model);
     acc_svm = sum(y(:) == y_hat(:)) / length(y_hat);
-    fprintf('[%s]: classification accuracy with %s+%0.2f is %0.2f\n', mfilename, pc.feature_type, alpha_i, acc_svm);
+    fprintf('[%s]: SVM classification accuracy with %s+%0.2f is %0.2f\n', mfilename, pc.feature_type, alpha_i, acc_svm);
 
     % store results for later analysis
     if ii == 1
@@ -60,6 +62,15 @@ for ii = 1:length(pc.alpha_all)
     end
     Y_hat_all(:,ii) = y_hat;
     acc_all(ii) = acc_svm;
+   
+    
+    %% KNN classifier
+    tic
+    model = fitcknn(Xi', y, 'NumNeighbors', 5, 'Standardize', 1, 'KFold', 5);
+    fprintf('[%s]: took %0.2f seconds to fit KNN for %s+%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
+    y_hat = kfoldPredict(model);
+    acc_knn = sum(y(:) == y_hat(:)) / length(y_hat);
+    fprintf('[%s]: KNN classification accuracy with %s+%0.2f is %0.2f\n', mfilename, pc.feature_type, alpha_i, acc_svm);
 end
 
 save('svm_results.mat', 'Y_hat_all', 'feats', '-v7.3');
@@ -70,6 +81,7 @@ save('svm_results.mat', 'Y_hat_all', 'feats', '-v7.3');
 y_avg = Y_hat_all(:,1);
 y_max = Y_hat_all(:,end);
 
+
 both_correct = (y_avg == y) & (y_avg == y_max);
 only_avg_correct = (y_avg == y) & (y_avg ~= y_max);
 only_max_correct = (y_max == y) & (y_avg ~= y_max);
@@ -78,6 +90,8 @@ neither_correct = (y_max ~= y) & (y_avg ~= y);
 any_correct = any(bsxfun(@eq, Y_hat_all, y),2);
 all_correct = sum(bsxfun(@eq, Y_hat_all, y),2) == size(Y_hat_all,2);
 internal_correct = any_correct & (y_avg ~= y) & (y_max ~=y);
+
+is_correct = bsxfun(@eq, Y_hat_all, y);
 
 fprintf('[%s]: there are %d examples total\n', mfilename, numel(y));
 fprintf('[%s]: any alpha correct:        %d\n', mfilename, sum(any_correct));
@@ -89,9 +103,15 @@ fprintf('[%s]: only max correct:         %d\n', mfilename, sum(only_max_correct)
 fprintf('[%s]: neither correct:          %d\n', mfilename, sum(neither_correct));
 
 
+% Take a look at which examples could be classified correctly if only we knew the correct alpha.
+candidates = is_correct(any_correct & (~ all_correct), :);
+[~,idx] = sort(sum(candidates,2));
+
 figure; 
-Is_Correct = bsxfun(@eq, Y_hat_all, y);
-imagesc(Is_Correct(internal_correct,:));
+subplot(1,2,1);
+imagesc(candidates(idx,:));
+subplot(1,2,2);
+histogram(sum(candidates,2));
 
 
 
