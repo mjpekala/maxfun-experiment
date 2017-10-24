@@ -22,23 +22,6 @@ end
 
 % visualize pooling regions
 for ii = [100 500 800, 850]
-    [p_fun, w, loc] = maxfun_pooling(data.X(:,:,:,ii), 3, 20);
-    
-    for channel = 1:n_channels
-        figure;
-        imagesc(data.X(:,:,channel,ii));
-        colormap('bone'); colorbar;
-    
-        [r,c] = ind2sub([rows, cols], loc(channel));
-        wc = w(channel);
-        r = r - wc/2;
-        c = c - wc/2;
-    
-        line([c,c], [r, r+wc], 'Color', 'r');
-        line([c,c]+wc, [r, r+wc], 'Color', 'r');
-        line([c,c+wc], [r, r], 'Color', 'r');
-        line([c,c+wc], [r, r]+wc, 'Color', 'r');
-        
-        title(sprintf('%0.2f (%d,%d ; %d)\n', p_fun(channel), r, c, wc));
-    end
+    maxfun_pooling(data.X(:,:,:,ii), 3, 20, true);
 end
+
