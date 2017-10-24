@@ -1,13 +1,12 @@
-function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, max_supp)
+function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_supp)
 % MAXFUN_POOLING  Pooling inspired by the discrete maximal function.
 %
 %    X      : A single image w/ dimensions (rows x cols x n_channels)
 
 [r,c,n] = size(X);
 
-if nargin < 2
-    max_supp = min(r,c);
-end
+if nargin < 2, min_supp = 1; end
+if nargin < 3, max_supp = min(r,c); end
 
 
 pool_value = -Inf*ones(1,n);   % the pooled value
@@ -18,7 +17,7 @@ pool_loc = NaN*ones(1,n);      % the location of the pooling region used to comp
 for channel = 1:n
     Xi = double(X(:,:,channel));
    
-    for measure = 1:max_supp
+    for measure = min_supp:max_supp
         scale = measure * measure; % TODO: could try other scalings...
         filter = ones(measure, measure) / scale;
         
