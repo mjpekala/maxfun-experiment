@@ -34,9 +34,9 @@ for channel = 1:n_channels
 end
 
 
-% (optional) visualize the pooling
+% (optional) visualize the pooling (or a subset thereof, for large # of features)
 if render
-    for channel = 1:n_channels
+    for channel = 1:min(n_channels,10)
         figure;
         imagesc(X(:,:,channel));
         colormap('bone'); colorbar;
