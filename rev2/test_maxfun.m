@@ -21,7 +21,7 @@ end
 
 
 % visualize pooling regions
-for ii = [100 500 800]
+for ii = [100 500 800, 850]
     [p_fun, w, loc] = maxfun_pooling(data.X(:,:,:,ii), 3, 20);
     
     for channel = 1:n_channels
@@ -31,6 +31,8 @@ for ii = [100 500 800]
     
         [r,c] = ind2sub([rows, cols], loc(channel));
         wc = w(channel);
+        r = r - wc/2;
+        c = c - wc/2;
     
         line([c,c], [r, r+wc], 'Color', 'r');
         line([c,c]+wc, [r, r+wc], 'Color', 'r');
