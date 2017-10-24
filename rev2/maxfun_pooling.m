@@ -1,7 +1,13 @@
 function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_supp, render)
 % MAXFUN_POOLING  Pooling inspired by the discrete maximal function.
 %
-%    X      : A single image w/ dimensions (rows x cols x n_channels)
+%    X        : A single image w/ dimensions (rows x cols x n_channels)
+%    min_supp : minimum pooling region dimension (side length)
+%    max_supp : maximum pooling region dimension; use this to control computation time
+%    render   : set to true to visualize the pooling (for debug only)
+
+
+%% Parameters
 
 [rows,cols,n_channels] = size(X);
 
@@ -10,10 +16,14 @@ if nargin < 3, max_supp = min(rows,cols); end
 if nargin < 4, render = false; end
 
 
+%% Allocate space for the return values.
+
 pool_value = -Inf*ones(1,n_channels);   % the pooled value
 pool_size = NaN*ones(1,n_channels);     % the size of the pooling region 
 pool_loc = NaN*ones(1,n_channels);      % the location of the pooling region 
 
+
+%% the computation; implement as a set of convolutions.
 
 for channel = 1:n_channels
     Xi = double(X(:,:,channel));
@@ -34,7 +44,9 @@ for channel = 1:n_channels
 end
 
 
-% (optional) visualize the pooling (or a subset thereof, for large # of features)
+
+%% (optional) visualize the pooling (or a subset thereof, for large # of features)
+
 if render
     for channel = 1:min(n_channels,10)
         figure;
