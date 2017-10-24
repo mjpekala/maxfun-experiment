@@ -48,7 +48,20 @@ end
 load(sprintf('feats_%s.mat', pc.feature_type));
 p % show parameters used to create data
 
+
+%% Evaluate maxfun
+
+tic
+model = build_classifier(feats.maxfun', feats.y);
+y_hat = kfoldPredict(model);
+acc = sum(feats.y(:) == y_hat(:)) / length(y_hat);
+toc
+fprintf('[%s]: maxfun classification accuracy is %0.3f\n\n', mfilename, acc);
+
+
+
 %% Evaluate for different values of alpha (interpolation between max and avg)
+
 X_max = feats.maxpool;
 X_avg = feats.avgpool;
 y = feats.y(:);
