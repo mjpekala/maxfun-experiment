@@ -6,7 +6,7 @@ load('caltech_101_lean.mat');
 
 fprintf('[%s]: X min/max : %0.2f / %0.2f\n', mfilename, min(data.X(:)), max(data.X(:)));
 
-
+tic
 for ii = 1:100
     Xi = data.X(:,:,:,ii);
     p_max = max_pooling(Xi);
@@ -18,10 +18,16 @@ for ii = 1:100
     assert(all(floor(p_fun(:)) <= p_max(:)+eps));
     assert(all(p_avg(:) <= p_fun(:)+eps));
 end
+toc
 
 
 % visualize pooling regions
-for ii = [100 500 800, 850]
-    maxfun_pooling(data.X(:,:,:,ii), 3, 20, true);
+for ii = [100  800]
+    Xi = data.X(:,:,:,ii);
+    maxfun_pooling(Xi, 3, 20, true);
+   
+    xform = @(x) dyadic_edge_feature(double(x), 3, 8); % XXX: these may require tuning
+    Xf = apply_transform(Xi, xform);
+    maxfun_pooling(Xf, 3, 20, true);
 end
 
