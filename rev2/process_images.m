@@ -118,16 +118,17 @@ feats.avgpool = zeros(n_feats, n_images);
 feats.maxfun = zeros(n_feats, n_images);
 feats.y = zeros(size(data.y));
 
+% shuffle images (to remove correlation in labels)
+feats.idx = randperm(n_images);
+
 
 %% extract features
 tic
 last_chatter = -Inf;
 
-% shuffle images (to remove correlation in labels over "time")
-shuffled_order = randperm(n_images);
 
 for ii = 1:n_images
-    orig_idx = shuffled_order(ii);
+    orig_idx = feats.idx(ii);  % index into original data set order
     
     x_i = data.X(:,:,:,orig_idx);                              % raw image
     x_f = featurize(x_i);                                      % filtered image 
