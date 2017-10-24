@@ -29,23 +29,15 @@ rng(1066);
 %% Experiment parameters
 pc.feature_type = 'dyadic-edge';
 pc.alpha_all = linspace(0, 1, 11);
-pc.classifier = 'knn';
+pc.classifier = 'svm';   % acc(SVM) > acc(KNN) for dyadic-edge(20,20,20)
 
 
 %% setup & load data
 
-%  Some quick experimentation on dyadic-edge(20,20,20) seems to suggest that KNN 
-%  works as well as the SVM (with default parameters, probably linear?).  
-%
-%  In addition to running more quickly, KNN has the virtue of being a little more
-%  intuitive; since we are not trying to build a complete classifier but say something
-%  about pooling KNN may be better for our purposes.
-%
-%  However, the relative max/avg performance may differ between algos...
-%
 switch(lower(pc.classifier))
   case 'svm'
-    build_classifier = @(X,y) fitcecoc(X, y, 'Standardize', 1, 'Kfold', 5);
+    build_classifier = @(X,y) fitcecoc(X, y, 'Kfold', 5);
+    
   case 'knn'
     build_classifier = @(X,y) fitcknn(X, y, 'NumNeighbors', 5, 'Standardize', 1, 'KFold', 5);
   otherwise
@@ -68,11 +60,11 @@ for ii = 1:length(pc.alpha_all)
 
     tic
     model = build_classifier(Xi', y);
-    fprintf('\n[%s]: took %0.2f seconds to fit SVMs for %s+%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
+    fprintf('\n[%s]: took %0.2f seconds to fit SVMs for %s:%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
 
     y_hat = kfoldPredict(model);
     acc = sum(y(:) == y_hat(:)) / length(y_hat);
-    fprintf('[%s]: classification accuracy with %s+%0.2f is %0.3f\n', mfilename, pc.feature_type, alpha_i, acc_svm);
+    fprintf('[%s]: classification accuracy with %s:%0.2f is %0.3f\n', mfilename, pc.feature_type, alpha_i, acc);
 
     % store results for later analysis
     if ii == 1
