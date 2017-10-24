@@ -1,20 +1,21 @@
-function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_supp)
+function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_supp, render)
 % MAXFUN_POOLING  Pooling inspired by the discrete maximal function.
 %
 %    X      : A single image w/ dimensions (rows x cols x n_channels)
 
-[r,c,n] = size(X);
+[rows,cols,n_channels] = size(X);
 
 if nargin < 2, min_supp = 1; end
-if nargin < 3, max_supp = min(r,c); end
+if nargin < 3, max_supp = min(rows,cols); end
+if nargin < 4, render = false; end
 
 
-pool_value = -Inf*ones(1,n);   % the pooled value
-pool_size = NaN*ones(1,n);     % the size of the pooling region used to compute value
-pool_loc = NaN*ones(1,n);      % the location of the pooling region used to compute value
+pool_value = -Inf*ones(1,n_channels);   % the pooled value
+pool_size = NaN*ones(1,n_channels);     % the size of the pooling region 
+pool_loc = NaN*ones(1,n_channels);      % the location of the pooling region 
 
 
-for channel = 1:n
+for channel = 1:n_channels
     Xi = double(X(:,:,channel));
    
     for measure = min_supp:max_supp
@@ -31,3 +32,26 @@ for channel = 1:n
         end
     end
 end
+
+
+% (optional) visualize the pooling
+if render
+    for channel = 1:n_channels
+        figure;
+        imagesc(X(:,:,channel));
+        colormap('bone'); colorbar;
+    
+        [r,c] = ind2sub([rows, cols], pool_loc(channel));
+        w = pool_size(channel);
+        r = floor(r - w/2);
+        c = floor(c - w/2);
+    
+        line([c,c], [r, r+w], 'Color', 'r');
+        line([c,c]+w, [r, r+w], 'Color', 'r');
+        line([c,c+w], [r, r], 'Color', 'r');
+        line([c,c+w], [r, r]+w, 'Color', 'r');
+        
+        title(sprintf('%0.2f (%d,%d ; %d)\n', pool_value(channel), r, c, w));
+    end
+end
+
