@@ -174,7 +174,7 @@ save(sprintf('feats_%s.mat', p.feature_type), 'feats', 'p', '-v7.3');
 %% some visualization
 
 figure; 
-histogram(w_maxfun);
+histogram(w_maxfun(:));
 title('maxfun support sizes');
 xlabel('support size');
 ylabel('frequency');
