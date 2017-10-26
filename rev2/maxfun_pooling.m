@@ -9,7 +9,13 @@ function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_sup
 
 %% Parameters
 
-[rows,cols,n_channels] = size(X);
+if ndims(X) == 3
+    [rows,cols,n_channels] = size(X);
+else
+    [rows,cols] = size(X);
+    n_channels = 1;
+end
+
 
 if nargin < 2, min_supp = 1; end
 if nargin < 3, max_supp = min(rows,cols); end
@@ -55,15 +61,15 @@ if render
     
         [r,c] = ind2sub([rows, cols], pool_loc(channel));
         w = pool_size(channel);
-        r = floor(r - w/2);
-        c = floor(c - w/2);
+        r = floor(r - w/2) + .5;
+        c = floor(c - w/2) + .5;
     
-        line([c,c], [r, r+w], 'Color', 'r');
-        line([c,c]+w, [r, r+w], 'Color', 'r');
-        line([c,c+w], [r, r], 'Color', 'r');
-        line([c,c+w], [r, r]+w, 'Color', 'r');
-        
-        title(sprintf('%0.2f (%d,%d ; %d)\n', pool_value(channel), r, c, w));
+        line([c,c], [r, r+w], 'Color', 'r', 'LineWidth', 2);
+        line([c,c]+w, [r, r+w], 'Color', 'r', 'LineWidth', 2);
+        line([c,c+w], [r, r], 'Color', 'r', 'LineWidth', 2);
+        line([c,c+w], [r, r]+w, 'Color', 'r', 'LineWidth', 2);
+
+        title(sprintf('maxfun=%0.2f (row=%d, col=%d ; w=%d)\n', pool_value(channel), floor(r), floor(c), w));
     end
 end
 
