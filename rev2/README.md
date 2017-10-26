@@ -47,6 +47,8 @@ The classes satisfying our "sufficient representation yet balanced" criteria are
 Prior to pooling, we perform a number of preprocessing steps:
 
 1.  All images are padded to make them square; e.g. a 100x120 pixel image will be padded to 120x120 pixels.  The image is kept centered when padding, e.g. in the previous example 10 columns would be added to the left of the image and 10 to the right.  We then resize all images to 128x128 pixels.  See [this script](./data/resize_square.m) for the precise details.
+2. A feature extraction algorithm is applied to the input image (e.g. gabor edge).  In general, this transforms an NxNx3 RGB image into a NxNxD feature tensor.
+3. The feature tensors spatially decomposed into (possibly overlapping) windows that define the pooling regions (across all feature dimensions).  The total number of feature dimensions after pooling will be a function of the original image size, the window size, and the number of feature dimensions D.
 
 
 ## Performance
