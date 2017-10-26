@@ -15,7 +15,10 @@
 rng(1066);
 
 
+
 %% PARAMETERS (change as desired for your experiment)
+
+FIG_DIR = './Figures';
 
 p.dataset = 'caltech-101-lean';
 p.feature_type = 'dyadic-edge';
@@ -84,8 +87,13 @@ end
 
 n_images = size(data.X,4);
 
+if ~exist(FIG_DIR)
+    mkdir(FIG_DIR);
+end
 
-view_dataset(data.X, data.y);
+
+%%
+view_dataset(data.X, data.y, FIG_DIR);
 
 
 if standardize
@@ -157,27 +165,41 @@ for ii = 1:n_images
         last_chatter = runtime;
     end
    
-    
-    % (optional) visualization)
-    if ii == 1
-        figure('Position', [100, 100, 900, 300]);
-        subplot(1,3,1);
-        imagesc(x_i(:,:,1)); colorbar;  title('input');
-        subplot(1,3,2);
-        imagesc(x_f(:,:,1)); colorbar;  title(p.feature_type);
-        subplot(1,3,3);
-        imagesc(x_fw(:,:,1)); colorbar;  title('first window');
-        
-        figure;
-        for k = 1:10
-            figure; imagesc(x_f(:,:,k));
-            title(sprintf('%s : feature index %d', p.feature_type, k));
-        end
-    end
 end
 
 fprintf('[%s]: total runtime: %0.2f sec\n', mfilename, toc);
 save(sprintf('feats_%s.mat', p.feature_type), 'feats', 'p', '-v7.3');
+
+
+%% some visualization
+
+figure; 
+histogram(w_maxfun);
+title('maxfun support sizes');
+xlabel('support size');
+ylabel('frequency');
+saveas(gca, fullfile(FIG_DIR, 'maxfun_supp.png'));
+
+
+figure('Position', [100, 100, 900, 300]);
+subplot(1,3,1);
+imagesc(x_i(:,:,1)); colorbar;  title('input');
+subplot(1,3,2);
+imagesc(x_f(:,:,1)); colorbar;  title(p.feature_type);
+subplot(1,3,3);
+imagesc(x_fw(:,:,1)); colorbar;  title('first window');
+saveas(gca, fullfile(FIG_DIR, 'sample_windowing.png'));
+
+
+figure;
+for k = 1:10
+    xk = x_fw(:,:,k);
+    maxfun_pooling(xk, p.maxfun_supp(1), p.maxfun_supp(2), true);
+    title(sprintf('%s : feature index %d', p.feature_type, k));
+   
+    fn = sprintf('sample_features_%d', k);
+    saveas(gca, fullfile(FIG_DIR, fn));
+end
 
 
 figure;
