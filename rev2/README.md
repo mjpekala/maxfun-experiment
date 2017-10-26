@@ -12,9 +12,8 @@
 
 
 ## Caltech-101 "Lean"
-The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes having between 80 and 130 instances. 
-Our motivation is to have a data set where each class has sufficient representation while maintaining balance among classes.  
-By default, Caltech-101 has a few classes with very large membership and also a fair number of classes with few members.  
+The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes having between 80 and 130 instances.  Our motivation is to have a data set where each class has sufficient representation while maintaining balance among classes ( by default, Caltech-101 has a few classes with very large membership and also a fair number of classes with few members).  
+
 The classes satisfying our "sufficient representation yet balanced" criteria are:
 
 ```
