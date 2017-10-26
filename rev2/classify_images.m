@@ -113,10 +113,10 @@ fprintf('[%s]: there are %d examples total\n', mfilename, numel(y));
 fprintf('[%s]: any alpha correct:        %d\n', mfilename, sum(any_correct));
 fprintf('[%s]: all alpha correct:        %d\n', mfilename, sum(all_correct));
 fprintf('[%s]: both avg and max correct: %d\n', mfilename, sum(both_correct));
+fprintf('[%s]: ~(avg or max) correct:    %d\n', mfilename, sum(neither_correct));
 fprintf('[%s]: only alpha in (0,1):      %d\n', mfilename, sum(internal_correct));
 fprintf('[%s]: only avg correct:         %d\n', mfilename, sum(only_avg_correct));
 fprintf('[%s]: only max correct:         %d\n', mfilename, sum(only_max_correct));
-fprintf('[%s]: neither correct:          %d\n', mfilename, sum(neither_correct));
 
 
 % Take a look at which examples could be classified correctly if only we knew the correct alpha.
