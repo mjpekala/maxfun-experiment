@@ -47,7 +47,6 @@ The classes satisfying our "sufficient representation yet balanced" criteria are
 Prior to pooling, we perform a number of preprocessing steps:
 
 1.  All images are padded to make them square; e.g. a 100x120 pixel image will be padded to 120x120 pixels.  The image is kept centered when padding, e.g. in the previous example 10 columns would be added to the left of the image and 10 to the right.  We then resize all images to 128x128 pixels.  See [this script](./data/resize_square.m) for the precise details.
-2. 
 
 
 ## Performance
