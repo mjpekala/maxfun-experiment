@@ -61,7 +61,7 @@ Here we show an example for one particular experiment setup:
      maxfun_supp: [2 6]
 ```
 
-In this case, maxfun pooling does not provide a clear improvement.  Note that maxfun pooling overwhelmingly chooses a pooling support dimension of 2 (ie. a 2x2 pooling region) for this setup.   Furthermore, it never chooses a pooling support dimension greater than 3:
+Note that, for this setup, maxfun pooling overwhelmingly chooses a pooling support dimension of 2 (ie. a 2x2 pooling region) for this setup.   Furthermore, it never chooses a pooling support dimension greater than 3:
 
 ```
 >> x = hist(w_maxfun(:), [2,3,4,5,6])
