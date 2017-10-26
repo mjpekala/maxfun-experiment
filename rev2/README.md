@@ -1,18 +1,21 @@
 
 ## Quick start
 
-1.  Download the CIFAR-10 data set.  You can use the script [here](./data/get_cifar.sh) or manually download and unpack the archive.
+1.  Download the Caltech-101.  You can use the script [here](./data/get_caltech101.sh) or manually download and unpack the archive.
 
-2.  Edit the [preprocessing](./preprocess_cifar10.m) script for your choice of windows and feature generation function.  In particular, you may want to change *window_size*, *stride*, *feature_type*, as well as the feature-specific parameters.  Then run this script to generate features for various pooling methods.   Note you need to run set_path.m the first time.
+2.  Edit the [preprocessing](./process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
 
-3. Edit (if needed) and run the the [classify](classify_cifar10.m) script to evaluate performance.
+3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](set_path.m) before calling the script the first time.  This will generate a .mat file with maximum, average and maxfun pooling for all images.
 
-Note that the current setup is not as complete (e.g. in terms of parameter selection, cross-validation) as possible; the intent here is to facilitate rapid experimentation with various features and pooling strategies.
+4. To evaluate classification performance, run the [classify](classify_images.m) script.  This will evaluate maxfun pooling as well as a number of pooling strategies of the form $\alpha * max + (1 - \alpha)*avg$.
+
+
 
 ## Caltech-101 "Lean"
-The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes with between 80 and 130 instances. 
-Our motivation is to have a data set where each class has sufficient representation and there is a fair amount of balance among classes.
-The classes satisfying this criteria are:
+The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes having between 80 and 130 instances. 
+Our motivation is to have a data set where each class has sufficient representation while maintaining balance among classes.  
+By default, Caltech-101 has a few classes with very large membership and also a fair number of classes with few members.  
+The classes satisfying our "sufficient representation yet balanced" criteria are:
 
 ```
 >> process_images
@@ -36,3 +39,13 @@ The classes satisfying this criteria are:
 [load_caltech101_lean]: keeping class 91 (sunflower) with 85 instances
 [load_caltech101_lean]: keeping class 93 (trilobite) with 86 instances
 ```
+
+
+
+## Preprocessing
+
+Prior to pooling, we perform a number of preprocessing steps:
+
+1.  All images are padded to make them square; e.g. a 100x120 pixel image will be padded to 120x120 pixels.  The image is kept centered when padding, e.g. in the previous example 10 columns would be added to the left of the image and 10 to the right.  We then resize all images to 128x128 pixels.  See [this script](./data/resize_square.m) for the precise details.
+2. 
+
