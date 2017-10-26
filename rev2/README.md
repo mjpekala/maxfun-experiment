@@ -69,43 +69,43 @@ x =
 3701042       40654           0           0           0
 ```
 
-In this case, maxfun pooling does not provide a clear improvment (in aggregate); it is likely that with very small pooling support sizes maxfun will behave very much like max pooling ($\alpha=1$).  It is an open question as to how best maxfun (or its inputs) can be scaled to exhibit more dynamic behavior.
+In this case, maxfun pooling does not provide a clear improvment (in aggregate); it is likely that with very small pooling support sizes maxfun will behave very much like max pooling ($\alpha=1$).  It is an open question as to how best maxfun (or its inputs) can be scaled to exhibit more dynamic behavior.  We also observe there is fairly similar performance across all values of $\alpha$, which suggests that there is limited potential gain to be had by exploring the space between maximum and average pooling.  Note also this space is further reduced if we use windows of size 20x20.
 
 ```
 Elapsed time is 25.382307 seconds.
 [classify_images]: maxfun classification accuracy is 0.770
 
-[classify_images]: took 21.74 seconds to fit and predict for dyadic-edge:0.00
+[classify_images]: took 21.74 seconds to fit and predict for alpha=0.00
 [classify_images]: classification accuracy is 0.777
 
-[classify_images]: took 21.97 seconds to fit and predict for dyadic-edge:0.10
+[classify_images]: took 21.97 seconds to fit and predict for alpha=0.10
 [classify_images]: classification accuracy is 0.788
 
-[classify_images]: took 22.26 seconds to fit and predict for dyadic-edge:0.20
+[classify_images]: took 22.26 seconds to fit and predict for alpha=0.20
 [classify_images]: classification accuracy is 0.779
 
-[classify_images]: took 22.08 seconds to fit and predict for dyadic-edge:0.30
+[classify_images]: took 22.08 seconds to fit and predict for alpha=0.30
 [classify_images]: classification accuracy is 0.781
 
-[classify_images]: took 22.26 seconds to fit and predict for dyadic-edge:0.40
+[classify_images]: took 22.26 seconds to fit and predict for alpha=0.40
 [classify_images]: classification accuracy is 0.785
 
-[classify_images]: took 22.20 seconds to fit and predict for dyadic-edge:0.50
+[classify_images]: took 22.20 seconds to fit and predict for alpha=0.50
 [classify_images]: classification accuracy is 0.773
 
-[classify_images]: took 22.67 seconds to fit and predict for dyadic-edge:0.60
+[classify_images]: took 22.67 seconds to fit and predict for alpha=0.60
 [classify_images]: classification accuracy is 0.766
 
-[classify_images]: took 22.06 seconds to fit and predict for dyadic-edge:0.70
+[classify_images]: took 22.06 seconds to fit and predict for alpha=0.70
 [classify_images]: classification accuracy is 0.764
 
-[classify_images]: took 22.28 seconds to fit and predict for dyadic-edge:0.80
+[classify_images]: took 22.28 seconds to fit and predict for alpha=0.80
 [classify_images]: classification accuracy is 0.769
 
-[classify_images]: took 24.32 seconds to fit and predict for dyadic-edge:0.90
+[classify_images]: took 24.32 seconds to fit and predict for alpha=0.90
 [classify_images]: classification accuracy is 0.770
 
-[classify_images]: took 24.62 seconds to fit and predict for dyadic-edge:1.00
+[classify_images]: took 24.62 seconds to fit and predict for alpha=1.00
 [classify_images]: classification accuracy is 0.762
 
 [classify_images]: there are 1624 examples total
