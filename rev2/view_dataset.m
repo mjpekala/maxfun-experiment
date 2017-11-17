@@ -19,7 +19,7 @@ for yi = y_all(:)'
         set(gca, 'XTick', [], 'YTick', []);
     else
         figure;
-        imagesc(X(:,:,1,idx));
+        imagesc(X(:,:,1,idx)); colorbar()
         title(sprintf('object %d, feature 1, y=%d', idx, yi));
         set(gca, 'XTick', [], 'YTick', []);
     end
