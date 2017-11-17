@@ -30,7 +30,7 @@ if 0
     p.window_size = [28,28];   p.stride = 28;  % 79-76
     %p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
 else
-    p.window_size = [63,63];  p.stride = 63; % size of IV3 layer 1 outputs (must have embedded pooling)
+    p.window_size = [21,21];  p.stride = 21; % note: features from IV3 are 63x63
 end
 
 
