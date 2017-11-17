@@ -10,6 +10,10 @@
 4. To evaluate classification performance, run the [classify](classify_images.m) script.  This will evaluate maxfun pooling as well as a number of pooling strategies of the form $\alpha * max + (1 - \alpha)*avg$.  
 
 
+### Using CNN-derived features
+
+If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./transforms/CNN/nets.py) to extract the feature maps of interest.  As of this writing, these codes only extract features for a single layer of the InceptionV3 CNN; however, it should be easy to modify to work with any network provided in tensorflow slim.
+
 
 ## Caltech-101 "Lean"
 The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes having between 80 and 130 instances.  Our motivation is to have a data set where each class has sufficient representation while maintaining balance among classes ( by default, Caltech-101 has a few classes with very large membership and also a fair number of classes with few members).  
