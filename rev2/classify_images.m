@@ -27,7 +27,7 @@
 rng(1066);
 
 %% Experiment parameters
-pc.feature_type = 'dyadic-edge';
+pc.feature_type = 'raw';
 pc.alpha_all = linspace(0, 1, 11);
 pc.classifier = 'svm';   % acc(SVM) > acc(KNN) for dyadic-edge(20,20,20)
 
