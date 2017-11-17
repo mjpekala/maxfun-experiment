@@ -129,11 +129,11 @@ if __name__ == "__main__":
       features = sess.run(model.output, feed_dict={model.x_tf : x})
       n = len(filenames)
 
-      fn = os.path.join(output_dir, 'batch_%02d.txt')
+      fn = os.path.join(output_dir, 'batch_%02d.txt' % batch_id)
       with open(fn, 'w') as f:
-        f.writelines(filenames) 
+        f.writelines("\n".join(filenames))
 
-      fn = os.path.join(output_dir, 'batch_%02d.mat')
-      savemat(fn, {'X' : features[:n,...]})
+      fn = os.path.join(output_dir, 'batch_%02d.mat' % batch_id)
+      savemat(fn, {'X' : x, 'X_f' : features[:n,...]})
 
       print('[info]: processed mini-batch # %d of size %d' % (batch_id, n))
