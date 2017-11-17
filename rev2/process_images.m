@@ -88,8 +88,7 @@ switch (p.dataset)
   % UPDATE: added some CNN features
   case 'caltech-101-lean-iv3-layer1'
     load('caltech_101_lean_iv3_layer1.mat');
-    keyboard % TEMP
-    data.X = permute(X_f, [1,2,3,4]);
+    data.X = permute(X_iv3, [2,3,4,1]);  % back to matlab-preferred order
     data.y = y;
     clear X_f y;
     
