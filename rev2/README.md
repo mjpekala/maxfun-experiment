@@ -12,7 +12,7 @@
 
 ### Using CNN-derived features
 
-If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./transforms/CNN/nets.py) to extract the feature maps of interest.  As of this writing, these codes only extract features for a single layer of the InceptionV3 CNN; however, it should be easy to modify to work with any network provided in tensorflow slim.
+If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./transforms/CNN/nets.py) to extract the feature maps of interest.  Then, re-run steps 3-4 above using "raw" feature "transformation" (ie. no feature extraction).  As of this writing, these codes only extract features for a single layer of the InceptionV3 CNN; however, it should be easy to modify to work with any network provided in tensorflow slim.
 
 
 ## Caltech-101 "Lean"
