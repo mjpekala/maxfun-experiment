@@ -21,12 +21,18 @@ rng(1066);
 FIG_DIR = './Figures';
 
 p.dataset = 'caltech-101-lean-iv3-layer1';
-p.feature_type = 'dyadic-edge';
+p.feature_type = 'raw';
 
-%p.window_size = [64,64];  p.stride = 32;   % 74-65
-%p.window_size = [32,32];   p.stride = 32;  % 77-75 (non-monotonic)
-p.window_size = [28,28];   p.stride = 28;  % 79-76
-%p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
+if 0
+    % These were for 128x128 images we process locally
+    %p.window_size = [64,64];  p.stride = 32;   % 74-65
+    %p.window_size = [32,32];   p.stride = 32;  % 77-75 (non-monotonic)
+    p.window_size = [28,28];   p.stride = 28;  % 79-76
+    %p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
+else
+    p.window_size = [63,63];  % size of IV3 layer 1 outputs (must have embedded pooling)
+end
+
 
 p.maxfun_supp = [2,6];
 
