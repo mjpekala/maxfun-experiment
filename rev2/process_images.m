@@ -30,7 +30,7 @@ if 0
     p.window_size = [28,28];   p.stride = 28;  % 79-76
     %p.window_size = [20,20];   p.stride = 20;  %  79-78 nearly equal perf. across alpha
 else
-    p.window_size = [63,63];  % size of IV3 layer 1 outputs (must have embedded pooling)
+    p.window_size = [63,63];  p.stride = 63; % size of IV3 layer 1 outputs (must have embedded pooling)
 end
 
 
@@ -95,7 +95,7 @@ switch (p.dataset)
   case 'caltech-101-lean-iv3-layer1'
     load('caltech_101_lean_iv3_layer1.mat');
     data.X = permute(X_iv3, [2,3,4,1]);  % back to matlab-preferred order
-    data.y = y;
+    data.y = y(:)';  % force to be a row vector
     clear X_f y;
     
   otherwise
