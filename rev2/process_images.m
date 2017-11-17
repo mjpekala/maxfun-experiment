@@ -20,7 +20,7 @@ rng(1066);
 
 FIG_DIR = './Figures';
 
-p.dataset = 'caltech-101-lean';
+p.dataset = 'caltech-101-lean-iv3-layer1';
 p.feature_type = 'dyadic-edge';
 
 %p.window_size = [64,64];  p.stride = 32;   % 74-65
@@ -33,9 +33,12 @@ p.maxfun_supp = [2,6];
 
 switch(lower(p.feature_type))
   case 'raw'
-    % working with raw images; this is not expected to work well.
+    % No local pre-processing.
+    % This is not expected to work well if the input file is raw images.
+    % However, we also use this when the input file contains some
+    %   exogenously processed data (e.g. via a CNN)
     featurize = @(x) x;
-    standardize = true;
+    standardize = false;
 
   case 'gabor'
     f_xform = @(x) gabor_feature(double(x), 8, 8); % XXX: these may require tuning
@@ -53,6 +56,7 @@ switch(lower(p.feature_type))
     f_xform = @(x) dyadic_edge_feature(double(x), 3, 16); % XXX: these may require tuning
     featurize = @(x) apply_transform(x, f_xform);
     standardize = false;
+    
 end
 
 
@@ -68,6 +72,7 @@ switch (p.dataset)
     fprintf('[%s]: WARNING - reducing data set size temporarily (for speed)\n', mfilename);
     data.X = data.X(:,:,:,1:1000);
     data.y = data.y(1:1000);
+   
     
   case 'caltech-101-lean'
     % it is a little slow to load this data set so cache it after loading for first time
@@ -79,6 +84,14 @@ switch (p.dataset)
         data = load_caltech101_lean('./data/101_ObjectCategories', 128);
         save(cached_fn, 'data', '-v7.3');
     end
+   
+  % UPDATE: added some CNN features
+  case 'caltech-101-lean-iv3-layer1'
+    load('caltech_101_lean_iv3_layer1.mat');
+    keyboard % TEMP
+    data.X = permute(X_f, [1,2,3,4]);
+    data.y = y;
+    clear X_f y;
     
   otherwise
     error('unknown dataset!');
