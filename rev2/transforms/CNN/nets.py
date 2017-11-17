@@ -2,7 +2,7 @@
 
   Example usage:
 
-    python nets.py ../../caltech_101_lean.mat ./caltech_101_lean_iv3.mat
+    python nets.py ../../caltech_101_lean.mat ./caltech_101_lean_iv3_layer1.mat
 """
 
 __author__ = "mjp"
