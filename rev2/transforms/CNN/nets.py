@@ -2,8 +2,7 @@
 
   Example usage:
 
-  python nets.py ./NIPS_1000/Test ./Output
-
+    python nets.py ../../caltech_101_lean.mat ./caltech_101_lean_iv3.mat
 """
 
 __author__ = "mjp"
@@ -12,10 +11,11 @@ __date__ = "november, 2017"
 
 import os, sys
 import pdb
+import h5py
 
 import numpy as np
 from scipy.misc import imread, imsave
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
 
 
 import tensorflow as tf
@@ -28,13 +28,9 @@ slim = tf.contrib.slim
 #-------------------------------------------------------------------------------
 # Helper functions for data I/O
 #-------------------------------------------------------------------------------
-def input_filenames(input_dir):
-  all_files = tf.gfile.Glob(os.path.join(input_dir, '*.png'))
-  all_files.sort()
-  return all_files
 
 
-def load_images(input_dir, batch_shape):
+def load_images_from_directory(input_dir, batch_shape):
   """Read png images from input directory in batches.
 
   Args:
@@ -47,6 +43,12 @@ def load_images(input_dir, batch_shape):
       first few images of the result are elements of the minibatch.
     images: array with all images from this batch
   """
+  def input_filenames(input_dir):
+    all_files = tf.gfile.Glob(os.path.join(input_dir, '*.png'))
+    all_files.sort()
+    return all_files
+
+
   images = np.zeros(batch_shape)
   filenames = []
   idx = 0
@@ -81,8 +83,8 @@ class InceptionV3:
   """ Just the first layer of InceptionV3
   """
 
-  def __init__(self, sess):
-    self.batch_shape = [16, 299, 299, 3]
+  def __init__(self, sess, dim=299):
+    self.batch_shape = [16, dim, dim, 3]
     self._num_classes = 1001
     self._scope = 'InceptionV3'
     self._weights_file = './Weights/inception_v3.ckpt'
@@ -109,14 +111,8 @@ class InceptionV3:
 
 
 #-------------------------------------------------------------------------------
-if __name__ == "__main__":
-  if len(sys.argv) < 3:
-    print('\nUSAGE:  python %s input_directory output_directory\n' % sys.argv[0])
-    sys.exit(1)
 
-  input_dir = sys.argv[1]
-  output_dir = sys.argv[2]
-
+def process_directory(input_dir, output_dir):
   if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
@@ -125,7 +121,7 @@ if __name__ == "__main__":
 
     # XXX: we may want to change the output format to make it more convenient
     #      for downstream processing later...
-    for batch_id, (filenames, x) in enumerate(load_images(input_dir, model.batch_shape)):
+    for batch_id, (filenames, x) in enumerate(load_images_from_directory(input_dir, model.batch_shape)):
       features = sess.run(model.output, feed_dict={model.x_tf : x})
       n = len(filenames)
 
@@ -137,3 +133,60 @@ if __name__ == "__main__":
       savemat(fn, {'X' : x, 'X_f' : features[:n,...]})
 
       print('[info]: processed mini-batch # %d of size %d' % (batch_id, n))
+
+
+def process_matfile(input_file, output_file):
+  #--------------------------------------------------
+  # load data from matlab file; assume is v7.3 format
+  #--------------------------------------------------
+  with h5py.File(input_file, 'r') as f:
+    y = f['data']['y'].value
+    X = f['data']['X'].value
+    X = np.transpose(X, [0,2,3,1])
+
+    print([k for k in f['data'].keys()]) # just for debugging
+    print(X.shape, y.shape)
+
+  #--------------------------------------------------
+  # extract features
+  #--------------------------------------------------
+  with tf.Graph().as_default(), tf.Session() as sess:
+    model = InceptionV3(sess, dim=128)
+    batch_size = model.batch_shape[0]
+
+    X_batch = np.zeros(model.batch_shape, dtype=np.float32)
+    for idx in range(0, X.shape[0], batch_size):
+      # Note: last mini-batch may be smaller
+      n_this_batch = min(X.shape[0] - idx, batch_size)
+      X_batch[...] = 0
+      X_batch[:n_this_batch,...] = X[idx:(idx+n_this_batch),...]
+
+      feats = sess.run(model.output, feed_dict={model.x_tf : X_batch})
+
+      if idx == 0:
+        # Create space for features; note: this assumes the data set is modest in size.
+        # Otherwise, perhaps we write to hdf5 directly.
+        X_out = np.zeros((X.shape[0], feats.shape[1], feats.shape[2], feats.shape[3]), np.float32)
+
+      X_out[idx:(idx+n_this_batch),...] = feats[:n_this_batch,...]
+
+  #--------------------------------------------------
+  # save output
+  #--------------------------------------------------
+  savemat(output_file, {'X_iv3' : X_out, 'y' : y})
+
+
+
+if __name__ == "__main__":
+  if len(sys.argv) < 3:
+    print('\nUSAGE:  python %s input_directory output_directory\n' % sys.argv[0])
+    sys.exit(1)
+
+  input_spec = sys.argv[1]
+  output_spec = sys.argv[2]
+
+  if os.path.isdir(input_spec):
+    process_directory(input_spec, output_spec)
+  else:
+    process_matfile(input_spec, output_spec)
+
