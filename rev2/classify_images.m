@@ -76,7 +76,7 @@ for ii = 1:length(pc.alpha_all)
     y_hat = kfoldPredict(model);
     acc = sum(y(:) == y_hat(:)) / length(y_hat);
     
-    fprintf('[%s]: took %0.2f seconds to fit and predict for %s:%0.2f\n', mfilename, toc, pc.feature_type, alpha_i);
+    fprintf('[%s]: took %0.2f seconds to fit and predict for alpha=%0.2f\n', mfilename, toc, alpha_i);
     fprintf('[%s]: classification accuracy is %0.3f\n\n', mfilename, acc);
 
     % store results for later analysis
