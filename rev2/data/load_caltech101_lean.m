@@ -1,4 +1,4 @@
-function lean_data = load_caltech101_lean(image_dir)
+function lean_data = load_caltech101_lean(image_dir, dim)
 % LOAD_CALTECH_101_LEAN  Load a subset Caltech-101. 
 %
 %   Here we return classes with non-trivial but comparable number
@@ -8,7 +8,7 @@ function lean_data = load_caltech101_lean(image_dir)
 n_examp_min = 80;
 n_examp_max = 120;
 
-data = load_caltech101(image_dir);
+data = load_caltech101(image_dir, dim);
 y_all = unique(data.y);
 
 

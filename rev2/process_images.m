@@ -76,7 +76,7 @@ switch (p.dataset)
     if exist(cached_fn)
         load(cached_fn);
     else
-        data = load_caltech101_lean('./data/101_ObjectCategories');
+        data = load_caltech101_lean('./data/101_ObjectCategories', 128);
         save(cached_fn, 'data', '-v7.3');
     end
     
