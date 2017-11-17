@@ -148,6 +148,14 @@ def process_matfile(input_file, output_file):
     print(X.shape, y.shape)
 
   #--------------------------------------------------
+  # put data in [-1,1] for inception
+  #--------------------------------------------------
+  assert(np.min(X) >= 0);
+  assert(np.max(X) <= 255);
+  X = X / 255.0
+  X = X * 2.0 - 1.0
+
+  #--------------------------------------------------
   # extract features
   #--------------------------------------------------
   with tf.Graph().as_default(), tf.Session() as sess:
