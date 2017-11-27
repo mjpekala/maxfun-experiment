@@ -39,17 +39,25 @@ pool_loc = NaN*ones(1,n_channels);      % the location of the pooling region
 
 %% the computation; implement as a set of convolutions.
 
+epsilon = 1e-8;  % UPDATE: we insist upon a "non-trivial" improvement 
+                 %         Otherwise, differences of 1e-15 or so 
+                 %         that are almost certainly numerical artifacts
+                 %         can cause an artificially large pool region
+                 %         to be selected.
+
+
+
 for channel = 1:n_channels
     Xi = double(X(:,:,channel));
    
     for measure = min_supp:max_supp
-        scale = measure * measure; % TODO: could try other scalings...
+        scale = measure * measure; 
         filter = ones(measure, measure) / scale;
         
         result = conv2(Xi, filter, 'same');
         [value,idx] = max(result(:));
         
-        if value > pool_value(channel)
+        if value > (pool_value(channel) + epsilon)
             pool_value(channel) = value;
             pool_size(channel) = measure;
             pool_loc(channel) = idx;
