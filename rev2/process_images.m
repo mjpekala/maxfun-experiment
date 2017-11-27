@@ -188,12 +188,14 @@ end
 fprintf('[%s]: total runtime: %0.2f sec\n', mfilename, toc);
 save(sprintf('feats_%s.mat', p.feature_type), 'feats', 'p', '-v7.3');
 
+pct_maxfun_nontrivial = sum(w_maxfun(:) > p.maxfun_supp(1)) / numel(w_maxfun);
+
 
 %% some visualization
 
 figure; 
 histogram(w_maxfun(:));
-title('maxfun support sizes');
+title(sprintf('maxfun support sizes (%0.2f%% non-trivial)', 100*pct_maxfun_nontrivial));
 xlabel('support size');
 ylabel('frequency');
 saveas(gca, fullfile(FIG_DIR, 'maxfun_supp.png'));
