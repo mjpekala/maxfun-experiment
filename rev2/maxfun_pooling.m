@@ -1,10 +1,17 @@
 function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_supp, render)
 % MAXFUN_POOLING  Pooling inspired by the discrete maximal function.
 %
-%    X        : A single image w/ dimensions (rows x cols x n_channels)
-%    min_supp : minimum pooling region dimension (side length)
-%    max_supp : maximum pooling region dimension; use this to control computation time
-%    render   : set to true to visualize the pooling (for debug only)
+%      X        : A single image w/ dimensions (rows x cols x n_channels)
+%      min_supp : minimum pooling region dimension (side length)
+%      max_supp : maximum pooling region dimension; use this to control computation time
+%      render   : set to true to visualize the pooling (for debug only)
+%
+%  RETURNS:
+%    pool_value : (1 x n_channels) vector of pooled values 
+%    pool_size  : (1 x n_channels) vector of pooling region dimension
+%    pool_loc   : (1 x n_channels) vector indicating index of pooling region
+%
+%  The latter two return values are just for debugging/visualization.
 
 
 %% Parameters
@@ -12,6 +19,7 @@ function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_sup
 if ndims(X) == 3
     [rows,cols,n_channels] = size(X);
 else
+    % deal with single channel images here
     [rows,cols] = size(X);
     n_channels = 1;
 end
