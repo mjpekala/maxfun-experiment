@@ -172,7 +172,7 @@ for ii = 1:n_images
     
     [feats.maxfun(:,ii), w_maxfun(:,ii), loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
     
-    % sanity checks
+    % max pooling should *never* be less than average pooling
     assert(all(feats.maxpool(:,ii) >= feats.avgpool(:,ii)));
 
     % status update
@@ -182,7 +182,17 @@ for ii = 1:n_images
                 mfilename, ii, n_images, runtime, p.feature_type);
         last_chatter = runtime;
     end
-   
+
+    
+    %% optional: investigate where maxfun prefers non-trivial pooling region
+    if 0 && any(w_maxfun(:,ii) > p.maxfun_supp(1))
+        h = findobj('type', 'figure');  if length(h) > 50, continue; end % don't open too many figures
+        idx = find(w_maxfun(:,ii) > p.maxfun_supp(1));
+        % to avoid too many figures, just look at one
+        maxfun_pooling(x_fw(:,:,idx(1)), p.maxfun_supp(1), p.maxfun_supp(2), true);
+        title('maxfun non-trivial pooling region example');
+    end
+    
 end
 
 fprintf('[%s]: total runtime: %0.2f sec\n', mfilename, toc);
@@ -191,7 +201,7 @@ save(sprintf('feats_%s.mat', p.feature_type), 'feats', 'p', '-v7.3');
 pct_maxfun_nontrivial = sum(w_maxfun(:) > p.maxfun_supp(1)) / numel(w_maxfun);
 
 
-%% some visualization
+%% look at distribution of maxfun pooling cardinalities
 
 figure; 
 histogram(w_maxfun(:));
@@ -200,6 +210,8 @@ xlabel('support size');
 ylabel('frequency');
 saveas(gca, fullfile(FIG_DIR, 'maxfun_supp.png'));
 
+
+%%
 
 figure('Position', [100, 100, 900, 300]);
 subplot(1,3,1);
