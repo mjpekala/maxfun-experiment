@@ -143,6 +143,7 @@ fprintf('[%s]: windowed data will have %d features\n', mfilename, n_feats);
 feats.maxpool = zeros(n_feats, n_images);
 feats.avgpool = zeros(n_feats, n_images);
 feats.maxfun = zeros(n_feats, n_images);
+feats.probpool = zeros(n_feats, n_images);
 feats.y = zeros(size(data.y));
 
 % shuffle images (to remove correlation in labels)
@@ -168,6 +169,7 @@ for ii = 1:n_images
     % pooling
     feats.maxpool(:,ii) = max_pooling(x_fw);
     feats.avgpool(:,ii) = avg_pooling(x_fw);
+    feats.probpool(:,ii) = prob_pooling(x_fw);
     feats.y(ii) = data.y(orig_idx);
     
     [feats.maxfun(:,ii), w_maxfun(:,ii), loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
