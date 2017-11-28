@@ -32,8 +32,6 @@ pc.alpha_all = linspace(0, 1, 11);
 pc.classifier = 'svm';   % acc(SVM) > acc(KNN) for dyadic-edge(20,20,20)
 
 
-%% setup & load data
-
 switch(lower(pc.classifier))
   case 'svm'
     build_classifier = @(X,y) fitcecoc(X, y, 'Kfold', 5);
@@ -45,110 +43,55 @@ switch(lower(pc.classifier))
 end
 
 
-load(sprintf('feats_%s.mat', pc.feature_type));
+%% load data
+load(sprintf('feats_%s.mat', pc.feature_type));  % creates "feats" variable
 p % show parameters used to create data
+
+% split into train/test
+cvo = cvpartition(feats.y, 'HoldOut', 0.5);
+
+fprintf('[%s]: Using %d train and %d test examples\n', ...
+        mfilename, sum(cvo.training), sum(cvo.test));
+
+
+
+%% Choose an alpha pooling value and evaluate performance
+tic
+alpha_pool = select_pool_alpha(feats.avgpool(:, cvo.training),...
+                               feats.maxpool(:, cvo.training), ...
+                               feats.y(cvo.training));
+toc
+
+X_test = feats.avgpool(:, cvo.test) * (1-alpha_pool) + feats.maxpool(:, cvo.test) * alpha_pool;
+y_test = feats.y(cvo.test);
+
+model = build_classifier(X_test', y_test);
+y_hat = kfoldPredict(model);
+acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
+fprintf('[%s]: mixed pooling classification accuracy: %0.3f\n', mfilename, acc);
+
+
+
+%% Evaluate performance of max and average as well
+
+model = build_classifier(feats.avgpool(:, cvo.test)', feats.y(cvo.test));
+y_hat = kfoldPredict(model);
+acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
+fprintf('[%s]: average pooling classification accuracy: %0.3f\n', mfilename, acc);
+
+model = build_classifier(feats.maxpool(:, cvo.test)', feats.y(cvo.test));
+y_hat = kfoldPredict(model);
+acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
+fprintf('[%s]: maximum pooling classification accuracy: %0.3f\n', mfilename, acc);
+
 
 
 %% Evaluate maxfun
 
-tic
-model = build_classifier(feats.maxfun', feats.y);
+% TODO: hyperparameter selection for MAXFUN ???
+
+model = build_classifier(feats.maxfun(:, cvo.test)', feats.y(cvo.test));
 y_hat = kfoldPredict(model);
-acc = sum(feats.y(:) == y_hat(:)) / length(y_hat);
-toc
-fprintf('[%s]: maxfun classification accuracy is %0.3f\n\n', mfilename, acc);
+acc = sum(feats.y(cvo.test)' == y_hat) / length(y_hat);
+fprintf('[%s]: maxfun classification accuracy is %0.3f\n', mfilename, acc);
 
-
-
-%% Evaluate for different values of alpha (interpolation between max and avg)
-
-X_max = feats.maxpool;
-X_avg = feats.avgpool;
-y = feats.y(:);
-
-for ii = 1:length(pc.alpha_all)
-    % features used are somewhere between max and avg
-    alpha_i = pc.alpha_all(ii);
-    Xi = alpha_i * X_max + (1 - alpha_i) * X_avg;
-
-    tic
-    model = build_classifier(Xi', y);
-    y_hat = kfoldPredict(model);
-    acc = sum(y(:) == y_hat(:)) / length(y_hat);
-    
-    fprintf('[%s]: took %0.2f seconds to fit and predict for alpha=%0.2f\n', mfilename, toc, alpha_i);
-    fprintf('[%s]: classification accuracy is %0.3f\n\n', mfilename, acc);
-
-    % store results for later analysis
-    if ii == 1
-        Y_hat_all = zeros(numel(y_hat), length(pc.alpha_all));
-        acc_all = zeros(length(pc.alpha_all),1);
-    end
-    Y_hat_all(:,ii) = y_hat;
-    acc_all(ii) = acc;
-end
-
-save('classification_results.mat', 'Y_hat_all', 'acc_all', 'feats', 'pc', '-v7.3');
-
-
-
-%% Some analysis of classification accuracy
-
-y_avg = Y_hat_all(:,1);
-y_max = Y_hat_all(:,end);
-
-
-both_correct = (y_avg == y) & (y_avg == y_max);
-only_avg_correct = (y_avg == y) & (y_avg ~= y_max);
-only_max_correct = (y_max == y) & (y_avg ~= y_max);
-neither_correct = (y_max ~= y) & (y_avg ~= y);
-
-any_correct = any(bsxfun(@eq, Y_hat_all, y),2);
-all_correct = sum(bsxfun(@eq, Y_hat_all, y),2) == size(Y_hat_all,2);
-internal_correct = any_correct & (y_avg ~= y) & (y_max ~=y);
-
-is_correct = bsxfun(@eq, Y_hat_all, y);
-
-fprintf('[%s]: there are %d examples total\n', mfilename, numel(y));
-fprintf('[%s]: any alpha correct:        %d\n', mfilename, sum(any_correct));
-fprintf('[%s]: all alpha correct:        %d\n', mfilename, sum(all_correct));
-fprintf('[%s]: both avg and max correct: %d\n', mfilename, sum(both_correct));
-fprintf('[%s]: ~(avg or max) correct:    %d\n', mfilename, sum(neither_correct));
-fprintf('[%s]: only alpha in (0,1):      %d\n', mfilename, sum(internal_correct));
-fprintf('[%s]: only avg correct:         %d\n', mfilename, sum(only_avg_correct));
-fprintf('[%s]: only max correct:         %d\n', mfilename, sum(only_max_correct));
-
-
-% Take a look at which examples could be classified correctly if only we knew the correct alpha.
-candidates = is_correct(any_correct & (~ all_correct), :);
-[~,idx] = sort(sum(candidates,2));
-
-figure; 
-subplot(1,2,1);
-imagesc(candidates(idx,:));
-subplot(1,2,2);
-histogram(sum(candidates,2));
-
-
-
-%% Analysis
-
-% it would be nice if there were monotonicity (or some easily
-% distinguishable pattern) as we move between max and avg.
-
-figure;
-plot(pc.alpha_all, acc_all, '-o');
-xlabel('alpha');
-ylabel('accuracy');
-  
-
-[~,idx] = sort(sum(Y_hat_all,2));
-
-figure;
-imagesc(Y_hat_all(idx,:));
-colorbar;
-
-% See how often the estimate changes
-is_unchanged = sum(bsxfun(@eq, Y_hat_all, y_avg),2) == size(Y_hat_all,2);
-
-fprintf('[%s]: %d of %d estimates do not change as a function of alpha\n', mfilename, sum(is_unchanged), size(Y_hat_all,1));
