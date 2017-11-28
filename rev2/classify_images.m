@@ -26,6 +26,7 @@
 
 rng(1066);
 
+
 %% Experiment parameters
 pc.feature_type = 'raw';
 pc.alpha_all = linspace(0, 1, 11);
@@ -48,57 +49,32 @@ load(sprintf('feats_%s.mat', pc.feature_type));  % creates "feats" variable
 p % show parameters used to create data
 
 % split into train/test
-cvo = cvpartition(feats.y, 'HoldOut', 0.5);
+cvo = cvpartition(feats.y, 'HoldOut', 0.6);
 
 fprintf('[%s]: Using %d train and %d test examples\n', ...
         mfilename, sum(cvo.training), sum(cvo.test));
 
 
 
-%% Choose an alpha pooling value and evaluate performance
+%% Evaluate performance of baseline strategies
+
+% mixed pooling requires some hyperparameter selection
 tic
 alpha_pool = select_pool_alpha(feats.avgpool(:, cvo.training),...
                                feats.maxpool(:, cvo.training), ...
                                feats.y(cvo.training));
-toc
 
-X_test = feats.avgpool(:, cvo.test) * (1-alpha_pool) + feats.maxpool(:, cvo.test) * alpha_pool;
-y_test = feats.y(cvo.test);
+X_mixed = feats.avgpool(:, cvo.test) * (1-alpha_pool) + feats.maxpool(:, cvo.test) * alpha_pool;
 
-model = build_classifier(X_test', y_test);
-y_hat = kfoldPredict(model);
-acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
-fprintf('[%s]: mixed pooling classification (alpha=%0.2f) accuracy: %0.3f\n', mfilename, alpha_pool, acc);
+eval_svm(X_mixed', feats.y(cvo.test), 'mixed pooling strategy');
+eval_svm(feats.avgpool(:, cvo.test)', feats.y(cvo.test), 'average pooling');
+eval_svm(feats.maxpool(:, cvo.test)', feats.y(cvo.test), 'maximum pooling');
+eval_svm(feats.probpool(:, cvo.test)', feats.y(cvo.test), 'stochastic pooling');
 
-
-
-%% Evaluate performance of max and average as well
-
-model = build_classifier(feats.avgpool(:, cvo.test)', feats.y(cvo.test));
-y_hat = kfoldPredict(model);
-acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
-fprintf('[%s]: average pooling classification accuracy: %0.3f\n', mfilename, acc);
-
-model = build_classifier(feats.maxpool(:, cvo.test)', feats.y(cvo.test));
-y_hat = kfoldPredict(model);
-acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
-fprintf('[%s]: maximum pooling classification accuracy: %0.3f\n', mfilename, acc);
-
-
-%% Stochastic pooling of Zeiler and Fergus
-
-model = build_classifier(feats.probpool(:, cvo.test)', feats.y(cvo.test));
-y_hat = kfoldPredict(model);
-acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
-fprintf('[%s]: stochastic pooling classification accuracy: %0.3f\n', mfilename, acc);
 
 
 %% Evaluate maxfun
 
-% TODO: hyperparameter selection for MAXFUN ???
-
-model = build_classifier(feats.maxfun(:, cvo.test)', feats.y(cvo.test));
-y_hat = kfoldPredict(model);
-acc = sum(feats.y(cvo.test)' == y_hat) / length(y_hat);
-fprintf('[%s]: maxfun classification accuracy is %0.3f\n', mfilename, acc);
+% TODO: hyperparameter selection for maxfun??
+eval_svm(feats.maxfun(:, cvo.test)', feats.y(cvo.test), 'MAXFUN pooling');
 
