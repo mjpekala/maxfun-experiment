@@ -34,7 +34,8 @@ else
 end
 
 
-p.maxfun_supp = [2,6];
+%p.maxfun_supp = [2,6];
+p.maxfun_supp = [5,6];
 
 
 switch(lower(p.feature_type))
