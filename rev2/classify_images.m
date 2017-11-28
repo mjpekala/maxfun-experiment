@@ -38,7 +38,7 @@ load(sprintf('feats_%s.mat', pc.feature_type));  % creates "feats" variable
 p % show parameters used to create data
 
 % split into train/test
-cvo = cvpartition(feats.y, 'HoldOut', 0.6);
+cvo = cvpartition(feats.y, 'HoldOut', 0.5);
 
 fprintf('[%s]: Using %d train and %d test examples\n', ...
         mfilename, sum(cvo.training), sum(cvo.test));
