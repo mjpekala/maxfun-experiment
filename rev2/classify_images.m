@@ -33,23 +33,12 @@ pc.alpha_all = linspace(0, 1, 11);
 pc.classifier = 'svm';   % acc(SVM) > acc(KNN) for dyadic-edge(20,20,20)
 
 
-switch(lower(pc.classifier))
-  case 'svm'
-    build_classifier = @(X,y) fitcecoc(X, y, 'Kfold', 5);
-    
-  case 'knn'
-    build_classifier = @(X,y) fitcknn(X, y, 'NumNeighbors', 5, 'Standardize', 1, 'KFold', 5);
-  otherwise
-    error('unknown classifier');
-end
-
-
 %% load data
 load(sprintf('feats_%s.mat', pc.feature_type));  % creates "feats" variable
 p % show parameters used to create data
 
 % split into train/test
-cvo = cvpartition(feats.y, 'HoldOut', 0.7);
+cvo = cvpartition(feats.y, 'HoldOut', 0.6);
 
 fprintf('[%s]: Using %d train and %d test examples\n', ...
         mfilename, sum(cvo.training), sum(cvo.test));
@@ -63,19 +52,18 @@ tic
 alpha_pool = select_pool_alpha(feats.avgpool(:, cvo.training),...
                                feats.maxpool(:, cvo.training), ...
                                feats.y(cvo.training));
+toc
 
+X_mixed = feats.avgpool*(1-alpha_pool) + feats.maxpool*alpha_pool;
 
-X_mixed = feats.avgpool(:, cvo.test) * (1-alpha_pool) + feats.maxpool(:, cvo.test) * alpha_pool;
-
-eval_svm(feats.avgpool(:, cvo.test)', feats.y(cvo.test), 'average pooling');
-eval_svm(feats.maxpool(:, cvo.test)', feats.y(cvo.test), 'maximum pooling');
-eval_svm(X_mixed', feats.y(cvo.test), sprintf('mixed pooling strategy (%0.2f)', alpha_pool));
-eval_svm(feats.probpool(:, cvo.test)', feats.y(cvo.test), 'stochastic pooling');
-
+eval_svm(feats.avgpool, feats.y, cvo.training, 'average pooling');
+eval_svm(feats.maxpool, feats.y, cvo.training, 'maximum pooling');
+eval_svm(X_mixed, feats.y, cvo.training, sprintf('mixed pooling strategy (%0.2f)', alpha_pool));
+eval_svm(feats.probpool, feats.y, cvo.training, 'stochastic pooling');
 
 
 %% Evaluate maxfun
 
 % TODO: hyperparameter selection for maxfun??
-eval_svm(feats.maxfun(:, cvo.test)', feats.y(cvo.test), 'MAXFUN pooling');
+eval_svm(feats.maxfun, feats.y, cvo.training, 'MAXFUN pooling');
 
