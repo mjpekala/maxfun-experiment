@@ -9,6 +9,6 @@ y_hat = kfoldPredict(model);
 acc = sum(y(:) == y_hat(:)) / numel(y);
 
 if length(desc)
-    fprintf('[%s]: "%s" accuracy: %0.3f\n', mfilename, desc, acc);
+    fprintf('[%s]: "%s" accuracy: %0.4f\n', mfilename, desc, acc);
 end
 
