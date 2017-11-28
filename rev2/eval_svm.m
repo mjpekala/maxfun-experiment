@@ -1,7 +1,7 @@
 function acc = eval_svm(X, y, desc)
 % EVAL_SVM  Trains and tests an SVM on a data set.
 
-rng(1066);  % for consistent results
+rng(1066);  % for consistent results across invocations
 
 model = fitcecoc(X, y, 'Kfold', 5);
 y_hat = kfoldPredict(model);
