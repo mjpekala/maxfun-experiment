@@ -8,6 +8,13 @@ function alpha_best = select_pool_alpha(X_avg, X_max, y)
 %
 %       y : n-dimensional vector of class labels
 %    
+%  This is for implementing the mixed pooling function described by
+%  equation 1 in [lee16].
+%
+%  REFERENCES:
+%    [lee16] Lee, Gallagher, Tu "Generalizing Pooling Functions in
+%            CNNs: Mixed, Gated and Tree".
+%      
 
 % mjp, november 2017
    
@@ -31,8 +38,8 @@ for fold_id = 1:n_folds
     
     for ii = 1:length(alpha_vals)
         alpha = alpha_vals(ii);
-        X_train = X_train_avg * alpha + X_train_max * (1-alpha);
-        X_test = X_test_avg * alpha + X_test_max * (1-alpha);
+        X_train = X_train_avg * (1-alpha) + X_train_max * alpha;
+        X_test = X_test_avg * (1-alpha) + X_test_max * alpha;
         
         model = fitcecoc(X_train', y_train);
         y_hat = predict(model, X_test');
