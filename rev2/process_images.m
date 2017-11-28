@@ -142,8 +142,8 @@ fprintf('[%s]: windowed data will have %d features\n', mfilename, n_feats);
 
 feats.maxpool = zeros(n_feats, n_images);
 feats.avgpool = zeros(n_feats, n_images);
-feats.maxfun = zeros(n_feats, n_images);
 feats.probpool = zeros(n_feats, n_images);
+feats.maxfun = zeros(n_feats, n_images);
 feats.y = zeros(size(data.y));
 
 % shuffle images (to remove correlation in labels)
