@@ -34,8 +34,7 @@ else
 end
 
 
-%p.maxfun_supp = [2,6];
-p.maxfun_supp = [5,6];
+p.maxfun_supp = [2,6];
 
 
 switch(lower(p.feature_type))
@@ -145,10 +144,12 @@ feats.maxpool = zeros(n_feats, n_images);
 feats.avgpool = zeros(n_feats, n_images);
 feats.probpool = zeros(n_feats, n_images);
 feats.maxfun = zeros(n_feats, n_images);
+feats.winpool = zeros(n_feats, n_images, p.maxfun_supp(2) - p.maxfun_supp(1) + 1);
 feats.y = zeros(size(data.y));
 
 % shuffle images (to remove correlation in labels)
 feats.idx = randperm(n_images);
+
 
 
 %% extract features
@@ -167,27 +168,37 @@ for ii = 1:n_images
     x_f = abs(x_f);                                            % NOTE: we always take modulus for now...
     x_fw = extract_all_windows(x_f, p.window_size, p.stride);  % filtered and windowed
    
-    % pooling
+    % pooling baselines
     feats.maxpool(:,ii) = max_pooling(x_fw);
     feats.avgpool(:,ii) = avg_pooling(x_fw);
     feats.probpool(:,ii) = prob_pooling(x_fw);
-    feats.y(ii) = data.y(orig_idx);
     
+    feats.y(ii) = data.y(orig_idx);
+   
+    % MAXFUN
     [feats.maxfun(:,ii), w_maxfun(:,ii), loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
     
-    % max pooling should *never* be less than average pooling
+    % "approximate MAXFUN" (max of fixed spatial average)
+    for jj = 1:size(feats.winpool,3)
+        pool_size = p.maxfun_supp(1) + (jj-1);
+        feats.winpool(:,ii,jj) = maxfun_pooling(x_fw, pool_size, pool_size);
+    end
+   
+    
+    %% Postprocessing
+    
+    % max should *never* be less than avg
     assert(all(feats.maxpool(:,ii) >= feats.avgpool(:,ii)));
 
-    % status update
+    % report status periodically to user
     runtime = toc;
     if runtime - last_chatter > 30
         fprintf('[%s] processed %d images (of %d) in %0.2f seconds (%s features)\n', ...
                 mfilename, ii, n_images, runtime, p.feature_type);
         last_chatter = runtime;
     end
-
     
-    %% optional: investigate where maxfun prefers non-trivial pooling region
+    % optional: investigate where maxfun prefers non-trivial pooling region
     if 0 && any(w_maxfun(:,ii) > p.maxfun_supp(1))
         h = findobj('type', 'figure');  if length(h) > 50, continue; end % don't open too many figures
         idx = find(w_maxfun(:,ii) > p.maxfun_supp(1));
@@ -225,20 +236,3 @@ subplot(1,3,3);
 imagesc(x_fw(:,:,1)); colorbar;  title('first window');
 saveas(gca, fullfile(FIG_DIR, 'sample_windowing.png'));
 
-
-figure;
-for k = 1:10
-    xk = x_fw(:,:,k);
-    maxfun_pooling(xk, p.maxfun_supp(1), p.maxfun_supp(2), true);
-    title(sprintf('%s : feature index %d', p.feature_type, k));
-   
-    fn = sprintf('sample_features_%d', k);
-    saveas(gca, fullfile(FIG_DIR, fn));
-end
-
-
-figure;
-subplot(1,2,1);
-histogram(feats.maxpool);  title('Max Pooling features');
-subplot(1,2,2);
-histogram(feats.avgpool);  title('Avg. Pooling features');
