@@ -49,7 +49,7 @@ load(sprintf('feats_%s.mat', pc.feature_type));  % creates "feats" variable
 p % show parameters used to create data
 
 % split into train/test
-cvo = cvpartition(feats.y, 'HoldOut', 0.6);
+cvo = cvpartition(feats.y, 'HoldOut', 0.7);
 
 fprintf('[%s]: Using %d train and %d test examples\n', ...
         mfilename, sum(cvo.training), sum(cvo.test));
@@ -64,11 +64,12 @@ alpha_pool = select_pool_alpha(feats.avgpool(:, cvo.training),...
                                feats.maxpool(:, cvo.training), ...
                                feats.y(cvo.training));
 
+
 X_mixed = feats.avgpool(:, cvo.test) * (1-alpha_pool) + feats.maxpool(:, cvo.test) * alpha_pool;
 
-eval_svm(X_mixed', feats.y(cvo.test), 'mixed pooling strategy');
 eval_svm(feats.avgpool(:, cvo.test)', feats.y(cvo.test), 'average pooling');
 eval_svm(feats.maxpool(:, cvo.test)', feats.y(cvo.test), 'maximum pooling');
+eval_svm(X_mixed', feats.y(cvo.test), sprintf('mixed pooling strategy (%0.2f)', alpha_pool));
 eval_svm(feats.probpool(:, cvo.test)', feats.y(cvo.test), 'stochastic pooling');
 
 
