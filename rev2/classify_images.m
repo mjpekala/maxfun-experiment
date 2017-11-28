@@ -68,7 +68,7 @@ y_test = feats.y(cvo.test);
 model = build_classifier(X_test', y_test);
 y_hat = kfoldPredict(model);
 acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
-fprintf('[%s]: mixed pooling classification accuracy: %0.3f\n', mfilename, acc);
+fprintf('[%s]: mixed pooling classification (alpha=%0.2f) accuracy: %0.3f\n', mfilename, alpha_pool, acc);
 
 
 
@@ -84,6 +84,13 @@ y_hat = kfoldPredict(model);
 acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
 fprintf('[%s]: maximum pooling classification accuracy: %0.3f\n', mfilename, acc);
 
+
+%% Stochastic pooling of Zeiler and Fergus
+
+model = build_classifier(feats.probpool(:, cvo.test)', feats.y(cvo.test));
+y_hat = kfoldPredict(model);
+acc = sum(feats.y(cvo.test)' == y_hat) / numel(y_hat);
+fprintf('[%s]: stochastic pooling classification accuracy: %0.3f\n', mfilename, acc);
 
 
 %% Evaluate maxfun
