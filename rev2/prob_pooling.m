@@ -16,8 +16,10 @@ function out = prob_pooling(X)
 
 out = zeros(n,1);
 
+epsilon = 1e-12;   % to avoid divide-by-zero in calculations below
+
 for ii = 1:n
-    a_i = X(:,:,ii);                % spatial pooling region
-    p_i = a_i / sum(a_i(:));        % normalized activations; equation (4) in [zei13]
-    out(ii) = sum(sum(p_i .* a_i)); % equation (6) in [zei13]
+    a_i = X(:,:,ii);                      % spatial pooling region
+    p_i = a_i / (sum(a_i(:)) + epsilon);  % normalized activations; equation (4) in [zei13]
+    out(ii) = sum(sum(p_i .* a_i));       % equation (6) in [zei13]
 end
