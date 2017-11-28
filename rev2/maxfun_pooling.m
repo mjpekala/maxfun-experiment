@@ -37,15 +37,13 @@ pool_size = NaN*ones(1,n_channels);     % the size of the pooling region
 pool_loc = NaN*ones(1,n_channels);      % the location of the pooling region 
 
 
-%% the computation; implement as a set of convolutions.
+%% the main computation
 
-epsilon = 1e-8;  % UPDATE: we insist upon a "non-trivial" improvement 
-                 %         Otherwise, differences of 1e-15 or so 
-                 %         that are almost certainly numerical artifacts
-                 %         can cause an artificially large pool region
-                 %         to be selected.
-
-
+% UPDATE: we insist upon a "non-trivial" improvement when selecting
+% the average from a larger pooling region.  Otherwise, differences on
+% the order of 1e-15 are treated as signficant, which are almost certainly
+% numerical artifacts from convolution.
+epsilon = 1e-8;  
 
 for channel = 1:n_channels
     Xi = double(X(:,:,channel));
