@@ -18,7 +18,7 @@ function alpha_best = select_pool_alpha(X_avg, X_max, y)
 
 % mjp, november 2017
    
-n_folds = 5;
+n_folds = 3;           % we are somewhat data poor, so keep k small
 alpha_vals = 0:.1:1;
 verbose = true;
 
@@ -53,7 +53,7 @@ for fold_id = 1:n_folds
 end
 
 
-acc_aggregate = median(acc,2);
+acc_aggregate = mean(acc,2);
 [~,best_idx] = max(acc_aggregate);
 
 alpha_best = alpha_vals(best_idx);
