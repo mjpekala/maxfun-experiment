@@ -144,7 +144,7 @@ feats.maxpool = zeros(n_feats, n_images);
 feats.avgpool = zeros(n_feats, n_images);
 feats.probpool = zeros(n_feats, n_images);
 feats.maxfun = zeros(n_feats, n_images);
-feats.winpool = zeros(n_feats, n_images, p.maxfun_supp(2) - p.maxfun_supp(1) + 1);
+feats.maxfun_oo = zeros(n_feats, n_images, p.maxfun_supp(2) - p.maxfun_supp(1) + 1);  % MAXFUN "one window"
 feats.y = zeros(size(data.y));
 
 % shuffle images (to remove correlation in labels)
@@ -179,9 +179,9 @@ for ii = 1:n_images
     [feats.maxfun(:,ii), w_maxfun(:,ii), loc] = maxfun_pooling(x_fw, p.maxfun_supp(1), p.maxfun_supp(2));
     
     % "approximate MAXFUN" (max of fixed spatial average)
-    for jj = 1:size(feats.winpool,3)
+    for jj = 1:size(feats.maxfun_oo,3)
         pool_size = p.maxfun_supp(1) + (jj-1);
-        feats.winpool(:,ii,jj) = maxfun_pooling(x_fw, pool_size, pool_size);
+        feats.maxfun_oo(:,ii,jj) = maxfun_pooling(x_fw, pool_size, pool_size);
     end
    
     
