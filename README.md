@@ -1,6 +1,7 @@
 
-# Quick start
+# MAXFUN Pooling Experiments
 
+## Quick Start
 1.  Download the Caltech-101 data.  You can use the script [here](./src/data/get_caltech101.sh) or manually download and unpack the archive.
 
 2.  Edit the [preprocessing](./src/process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
