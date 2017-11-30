@@ -1,5 +1,5 @@
 
-## Quick start
+# Quick start
 
 1.  Download the Caltech-101 data.  You can use the script [here](./src/data/get_caltech101.sh) or manually download and unpack the archive.
 
@@ -9,12 +9,22 @@
 
 4. To evaluate classification performance, run the [classify](./src/classify_images.m) script.  This will "evaluate" the pooling strategies using a simple SVM classifier.
 
+## Variations
 
 ### Using CNN-derived features
 
 If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./src/transforms/CNN/nets.py) to extract the feature maps of interest.  Then, re-run steps 3-4 above using "raw" feature "transformation" (ie. no feature extraction) on the .mat file created by nets.py.  
 
 Note that, as of this writing, nets.py only extracts features for a single layer of the InceptionV3 network; however, it should be easy to modify to work with any network provided in tensorflow slim.
+
+### Implementing different pooling functions
+
+To implement a different pooling baseline, one need only 
+
+1. Create a new matlab function that implements the API used by the existing pooling functions (e.g. see [avg_pooling.m](./src/avg_pooling.m}).
+2. Add your new pooling output to the feats structure in [process_images.m](./src/process_images.m).
+3. Call your pooling function in the main feature extraction loop.
+4. Add your pooling output to [classify_images.m](./src/classify_images.m).
 
 
 ## Caltech-101 "Lean"
