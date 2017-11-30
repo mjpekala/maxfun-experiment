@@ -1,13 +1,13 @@
 
 ## Quick start
 
-1.  Download the Caltech-101.  You can use the script [here](./src/data/get_caltech101.sh) or manually download and unpack the archive.
+1.  Download the Caltech-101 data.  You can use the script [here](./src/data/get_caltech101.sh) or manually download and unpack the archive.
 
 2.  Edit the [preprocessing](./src/process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
 
-3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time.  This will generate a .mat file with maximum, average and maxfun pooling for all images.  If using caltech-lean (the default) it will also cache the data set.
+3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time.  This will generate a .mat file with the various pooled features for all images.  If using caltech-lean (the default) it will also cache the data set so that it need not be re-created from scratch each time.
 
-4. To evaluate classification performance, run the [classify](./src/classify_images.m) script.  This will evaluate maxfun pooling as well as a number of pooling strategies of the form $\alpha * max + (1 - \alpha)*avg$.  
+4. To evaluate classification performance, run the [classify](./src/classify_images.m) script.  This will "evaluate" the pooling strategies using a simple SVM classifier.
 
 
 ### Using CNN-derived features
