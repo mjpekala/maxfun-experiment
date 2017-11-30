@@ -127,8 +127,11 @@ Elapsed time is 25.382307 seconds.
 ```
 
 ## References
-[bou10] Boureau, Ponce & LeCun "A theoretical analysis of feature pooling in visual recognition" ICML 2010.
-[zie13] Zieler & Fergus "Stochastic Pooling for Regularization of Deep Convolutional Neural Networks" ICLR 2013.
-[rip15] Rippel, Snoek & Adams "Spectral Representations for Convolutional Neural Networks" NIPS 2015.
-[lee16] Lee, Gallagher & Tu "Generalized Pooling Functions in Convolutional Neural Networks: Mixed, Gated and Tree" Artificial Intelligence and Statistics, 2016.
+
+* [bou10] Boureau, Ponce & LeCun "A theoretical analysis of feature pooling in visual recognition" ICML 2010.
+
+* [zie13] Zieler & Fergus "Stochastic Pooling for Regularization of Deep Convolutional Neural Networks" ICLR 2013.
+
+* [rip15] Rippel, Snoek & Adams "Spectral Representations for Convolutional Neural Networks" NIPS 2015.
+ * [lee16] Lee, Gallagher & Tu "Generalized Pooling Functions in Convolutional Neural Networks: Mixed, Gated and Tree" Artificial Intelligence and Statistics, 2016.
 
