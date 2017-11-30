@@ -1,18 +1,18 @@
 
 ## Quick start
 
-1.  Download the Caltech-101.  You can use the script [here](./data/get_caltech101.sh) or manually download and unpack the archive.
+1.  Download the Caltech-101.  You can use the script [here](./src/data/get_caltech101.sh) or manually download and unpack the archive.
 
-2.  Edit the [preprocessing](./process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
+2.  Edit the [preprocessing](./src/process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
 
-3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](set_path.m) before calling the script the first time.  This will generate a .mat file with maximum, average and maxfun pooling for all images.  If using caltech-lean (the default) it will also cache the data set.
+3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time.  This will generate a .mat file with maximum, average and maxfun pooling for all images.  If using caltech-lean (the default) it will also cache the data set.
 
-4. To evaluate classification performance, run the [classify](classify_images.m) script.  This will evaluate maxfun pooling as well as a number of pooling strategies of the form $\alpha * max + (1 - \alpha)*avg$.  
+4. To evaluate classification performance, run the [classify](./src/classify_images.m) script.  This will evaluate maxfun pooling as well as a number of pooling strategies of the form $\alpha * max + (1 - \alpha)*avg$.  
 
 
 ### Using CNN-derived features
 
-If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./transforms/CNN/nets.py) to extract the feature maps of interest.  Then, re-run steps 3-4 above using "raw" feature "transformation" (ie. no feature extraction) on the .mat file created by nets.py.  
+If, for a given experiment, you would prefer to use feature maps from a CNN, this requires an additional intermediate processing step.  After creating the Caltech lean data set in step 3 above (see also below for more details on this data set) you'll need to use the codes in [nets.py](./src/transforms/CNN/nets.py) to extract the feature maps of interest.  Then, re-run steps 3-4 above using "raw" feature "transformation" (ie. no feature extraction) on the .mat file created by nets.py.  
 
 Note that, as of this writing, nets.py only extracts features for a single layer of the InceptionV3 network; however, it should be easy to modify to work with any network provided in tensorflow slim.
 
