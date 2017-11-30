@@ -8,7 +8,7 @@
 
 3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time.  This will generate a .mat file with the various pooled features for all images.  If using caltech-lean (the default) it will also cache the data set so that it need not be re-created from scratch each time.
 
-4. To evaluate classification performance, run the [classify](./src/classify_images.m) script.  This will "evaluate" the pooling strategies using a simple SVM classifier.
+4. To evaluate classification performance, run the [classification](./src/classify_images.m) script.  This will "evaluate" the pooling strategies using a simple SVM classifier.
 
 ## Variations
 
@@ -20,9 +20,9 @@ Note that, as of this writing, nets.py only extracts features for a single layer
 
 ### Implementing different pooling functions
 
-To implement a different pooling baseline, one need only 
+To implement a different pooling baseline, one need only:
 
-1. Create a new matlab function that implements the API used by the existing pooling functions (e.g. see [avg_pooling.m](./src/avg_pooling.m}).
+1. Create a new matlab function that implements the API used by the existing pooling functions (e.g. see [avg_pooling.m](./src/avg_pooling.m)).
 2. Add your new pooling output to the feats structure in [process_images.m](./src/process_images.m).
 3. Call your pooling function in the main feature extraction loop.
 4. Add your pooling output to [classify_images.m](./src/classify_images.m).
