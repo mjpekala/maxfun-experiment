@@ -28,7 +28,7 @@ To implement a different pooling baseline, one need only:
 4. Add your pooling output to [classify_images.m](./src/classify_images.m).
 
 
-## Caltech-101 "Lean"
+## Dataset: Caltech-101 "Lean"
 The Caltech-101 "lean" data set is a subset of Caltech-101, restricted to classes having between 80 and 130 instances.  Our motivation is to have a data set where each class has sufficient representation while maintaining balance among classes ( by default, Caltech-101 has a few classes with very large membership and also a fair number of classes with few members).  
 
 The classes satisfying our "sufficient representation yet balanced" criteria are:
@@ -66,76 +66,6 @@ Prior to pooling, we perform a number of preprocessing steps:
 2. A feature extraction algorithm is applied to the input image (e.g. gabor edge).  In general, this transforms an NxNx3 RGB image into a NxNxD feature tensor.
 3. The feature tensors spatially decomposed into (possibly overlapping) windows that define the pooling regions (across all feature dimensions).  The total number of feature dimensions after pooling will be a function of the original image size, the window size, and the number of feature dimensions D.
 
-
-## Performance
-
-Here we show an example for one particular experiment setup:
-
-```
-         dataset: 'caltech-101-lean'
-    feature_type: 'dyadic-edge'
-     window_size: [28 28]
-          stride: 28
-     maxfun_supp: [2 6]
-```
-
-Note that, for this setup, maxfun pooling overwhelmingly chooses a pooling support dimension of 2 (ie. a 2x2 pooling region) for this setup.   Furthermore, it never chooses a pooling support dimension greater than 3:
-
-```
->> x = hist(w_maxfun(:), [2,3,4,5,6])
-x =
-3701042       40654           0           0           0
-```
-
-In this case, maxfun pooling does not provide a clear improvment (in aggregate); it is likely that with very small pooling support sizes maxfun will behave very much like max pooling ($\alpha=1$).  It is an open question as to how best maxfun (or its inputs) can be scaled to exhibit more dynamic behavior.  We also observe there is fairly similar performance across all values of $\alpha$, which suggests that there is limited potential gain to be had by exploring the space between maximum and average pooling.  Note also this space is further reduced if we use windows of size 20x20.
-
-```
-Elapsed time is 25.382307 seconds.
-[classify_images]: maxfun classification accuracy is 0.770
-
-[classify_images]: took 21.74 seconds to fit and predict for alpha=0.00
-[classify_images]: classification accuracy is 0.777
-
-[classify_images]: took 21.97 seconds to fit and predict for alpha=0.10
-[classify_images]: classification accuracy is 0.788
-
-[classify_images]: took 22.26 seconds to fit and predict for alpha=0.20
-[classify_images]: classification accuracy is 0.779
-
-[classify_images]: took 22.08 seconds to fit and predict for alpha=0.30
-[classify_images]: classification accuracy is 0.781
-
-[classify_images]: took 22.26 seconds to fit and predict for alpha=0.40
-[classify_images]: classification accuracy is 0.785
-
-[classify_images]: took 22.20 seconds to fit and predict for alpha=0.50
-[classify_images]: classification accuracy is 0.773
-
-[classify_images]: took 22.67 seconds to fit and predict for alpha=0.60
-[classify_images]: classification accuracy is 0.766
-
-[classify_images]: took 22.06 seconds to fit and predict for alpha=0.70
-[classify_images]: classification accuracy is 0.764
-
-[classify_images]: took 22.28 seconds to fit and predict for alpha=0.80
-[classify_images]: classification accuracy is 0.769
-
-[classify_images]: took 24.32 seconds to fit and predict for alpha=0.90
-[classify_images]: classification accuracy is 0.770
-
-[classify_images]: took 24.62 seconds to fit and predict for alpha=1.00
-[classify_images]: classification accuracy is 0.762
-
-[classify_images]: there are 1624 examples total
-[classify_images]: any alpha correct:        1421
-[classify_images]: all alpha correct:        1016
-[classify_images]: both avg and max correct: 1151
-[classify_images]: only alpha in (0,1):      72
-[classify_images]: only avg correct:         111
-[classify_images]: only max correct:         87
-[classify_images]: neither correct:          275
-[classify_images]: 1118 of 1624 estimates do not change as a function of alpha
-```
 
 ## References
 
