@@ -13,6 +13,7 @@ function [pool_value, pool_size, pool_loc] = maxfun_pooling(X, min_supp, max_sup
 %
 %  The latter two return values are just for debugging/visualization.
 
+% mjp, november 2017
 
 %% Parameters
 
