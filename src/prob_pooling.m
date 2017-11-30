@@ -1,7 +1,8 @@
 function out = prob_pooling(X)
 % PROB_POOLING  The weighted-by-probability pooling of [zei13]
 %
-%    X      : A single image (rows x cols x n_channels)
+%    X  : A single image (rows x cols x n_channels)
+%   out : a n_channels dimensional vector of pooled values
 %
 %  See equations (4),(6) in [zei13].
 %
