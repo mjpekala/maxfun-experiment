@@ -145,6 +145,7 @@ feats.avgpool = zeros(n_feats, n_images);
 feats.probpool = zeros(n_feats, n_images);
 feats.maxfun = zeros(n_feats, n_images);
 feats.maxfun_oo = zeros(n_feats, n_images, p.maxfun_supp(2) - p.maxfun_supp(1) + 1);  % MAXFUN "one window"
+feats.maxfun_centered = zeros(n_feats, n_images);
 feats.y = zeros(size(data.y));
 
 % shuffle images (to remove correlation in labels)
@@ -183,7 +184,8 @@ for ii = 1:n_images
         pool_size = p.maxfun_supp(1) + (jj-1);
         feats.maxfun_oo(:,ii,jj) = maxfun_pooling(x_fw, pool_size, pool_size);
     end
-   
+
+    [feats.maxfun_centered(:,ii), tmp] = centered_maxfun_pooling(x_fw);
     
     %% Postprocessing
     
