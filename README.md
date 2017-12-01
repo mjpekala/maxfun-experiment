@@ -6,7 +6,7 @@
 
 2.  Edit the [preprocessing](./src/process_images.m) script to select a windowing and feature type (e.g. gabor edge, dyadic edge).  The parameters of primary interest are towards the top of the script in the PARAMETERS section.
 
-3.  Run the process_images.m script.  Note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time.  This will generate a .mat file with the various pooled features for all images.  If using caltech-lean (the default) it will also cache the data set so that it need not be re-created from scratch each time.
+3.  Run the process_images.m script (note that you will have to [set Matlab's path](./src/set_path.m) before calling the script the first time).  The image processing script will generate a .mat file with the various pooled features for all images.  If using the caltech-lean data set (the default) the script will also cache the data set so that it need not be re-created from scratch each time (this cached version is also what one will process to produce the optional CNN features).
 
 4. To evaluate classification performance, run the [classification](./src/classify_images.m) script.  This will "evaluate" the pooling strategies using a simple SVM classifier.
 
