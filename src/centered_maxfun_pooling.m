@@ -1,15 +1,56 @@
-function out = centered_maxfun_pooling(X)
+function [pool_value, pool_size] = centered_maxfun_pooling(X)
 % CENTERED_MAXFUN_POOLING  Pooling inspired by the discrete maximal function.
 %
 %    X   : A single image w/ dimensions (rows x cols x n_channels)
 %
 %  RETURNS:
-%    out : (1 x n_channels) vector of pooled values 
+%    pool_value : (1 x n_channels) vector of pooled values 
+%    pool_size  : (1 x n_channels) vector of pooling region sizes
+%                 This is just for debugging/analysis.
 
+% mjp, november 2017
 
 [n_rows, n_cols, n_channels] = size(X);
 
-out = zeros(1,n);
 
-error('this needs to be implemented!');
+% these could be made into function parameters later (if desired)
+min_supp = 1;
+max_supp = min(n_rows, n_cols);
 
+epsilon = 1e-8;    % a small constant
+
+
+pool_value = -Inf * ones(1,n_channels);
+pool_size = zeros(1,n_channels);
+
+rc = ceil(n_rows/2);  % center row
+cc = ceil(n_cols/2);  % center column
+
+
+for measure = min_supp:max_supp
+    scale = measure * measure; 
+    m_half = floor(measure/2);
+   
+    % determine which subset of the region to average.
+    ra = rc - m_half;
+    rb = rc + (measure - m_half - 1);
+    
+    ca = cc - m_half;
+    cb = cc + (measure - m_half - 1);
+
+    values_to_pool = X(ra:rb, ca:cb, :);
+   
+    % compute the average
+    if measure > 1
+      pooled_values_i = sum(sum(values_to_pool)) / scale;
+    else
+      pooled_values_i = values_to_pool;
+    end
+    pooled_values_i = squeeze(pooled_values_i)';
+  
+    % determine which values are larger and update outputs accordingly
+    is_larger = pooled_values_i > (pool_value + epsilon);
+
+    pool_value(is_larger) = pooled_values_i(is_larger);
+    pool_size(is_larger) = measure;
+end
