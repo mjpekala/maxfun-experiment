@@ -57,7 +57,7 @@ for ii = 1:size(feats.maxfun_oo,3)
     acc = sum(y_hat(:) == y_train(:)) / numel(y_train);
     
     if acc > acc_best
-        fprintf('[%s]: maxfun_OO accuracy improved to %0.3f with index %d\n', mfilename, acc, ii);
+        fprintf('[%s]: maxfun_oo accuracy improved to %0.3f with index %d\n', mfilename, acc, ii);
         acc_best = acc;
         maxfun_oo_best_idx = ii;
     end
@@ -98,5 +98,5 @@ eval_svm(feats.probpool, feats.y, cvo.training, 'stochastic pooling');
 
 eval_svm(feats.maxfun, feats.y, cvo.training, 'MAXFUN pooling');
 eval_svm(feats.maxfun_oo(:,:,maxfun_oo_best_idx), feats.y, cvo.training, 'MAXFUN one window size');
-
+eval_svm(feats.maxfun_centered, feats.y, cvo.training, 'centered MAXFUN pooling');
 
