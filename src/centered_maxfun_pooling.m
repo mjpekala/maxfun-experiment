@@ -28,7 +28,7 @@ function [pool_value, pool_size] = centered_maxfun_pooling(X)
 
 
 % these could be made into function parameters later (if desired)
-min_supp = 1;
+min_supp = 2;
 max_supp = min(n_rows, n_cols);
 
 epsilon = 1e-8;    % a small constant
