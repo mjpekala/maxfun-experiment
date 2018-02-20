@@ -67,6 +67,40 @@ Prior to pooling, we perform a number of preprocessing steps:
 3. The feature tensors spatially decomposed into (possibly overlapping) windows that define the pooling regions (across all feature dimensions).  The total number of feature dimensions after pooling will be a function of the original image size, the window size, and the number of feature dimensions D.
 
 
+## Example Results
+
+Using the CNN-derived features (outputs from first convolutional layer) and the default parameters we choose, one should see results of the form:
+
+```
+>> classify_images
+
+p = 
+
+         dataset: 'caltech-101-lean-iv3-layer1'
+    feature_type: 'raw'
+     window_size: [21 21]
+          stride: 21
+     maxfun_supp: [2 6]
+
+[classify_images]: Using 975 train and 649 test examples
+[classify_images]: maxfun_oo accuracy improved to 0.585 with index 1
+[classify_images]: maxfun_oo accuracy improved to 0.594 with index 3
+[classify_images]: maxfun_oo accuracy improved to 0.599 with index 4
+[classify_images]: maxfun_oo accuracy improved to 0.608 with index 5
+[classify_images]: mixed pooling accuracy improved to 0.551 with alpha=0.0
+[classify_images]: mixed pooling accuracy improved to 0.573 with alpha=0.1
+[classify_images]: mixed pooling accuracy improved to 0.581 with alpha=0.2
+[classify_images]: mixed pooling accuracy improved to 0.594 with alpha=0.3
+[eval_svm]: "average pooling" accuracy: 0.5763
+[eval_svm]: "maximum pooling" accuracy: 0.5932
+[eval_svm]: "mixed pooling strategy (0.30)" accuracy: 0.6287
+[eval_svm]: "stochastic pooling" accuracy: 0.6502
+[eval_svm]: "MAXFUN pooling" accuracy: 0.6225
+[eval_svm]: "MAXFUN one window size" accuracy: 0.6626
+[eval_svm]: "centered MAXFUN pooling" accuracy: 0.5347
+```
+
+
 ## References
 
 * [bou10] Boureau, Ponce & LeCun "A theoretical analysis of feature pooling in visual recognition" ICML 2010.
